@@ -61,7 +61,7 @@ After(async function ({ pickle, result }) {
 function writeAllureEnvironment() {
   fs.mkdirSync(resultsDir, { recursive: true });
   const lines = [
-    `Base URL=${config.baseUrl}`,
+    `BaseURL=${config.baseUrl}`,
     `Browser=Chromium`,
     `Headless=${config.headless}`,
     `Locale=${config.locale}`,

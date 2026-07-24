@@ -6,7 +6,8 @@ Teknoloji yığını: **JavaScript + Playwright + Cucumber + Allure**, Page Obje
 ## Gereksinimler
 
 - Node.js 18 veya üzeri
-- Allure raporunu görüntülemek için Allure CLI (`brew install allure` veya `npm i -g allure-commandline`)
+- Allure raporunu üretmek için Java 8+ (Allure CLI projeye bağımlılık olarak
+  eklendiği için ayrıca kurulum gerekmez)
 
 ## Kurulum
 
