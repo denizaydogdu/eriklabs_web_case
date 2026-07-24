@@ -1,10 +1,9 @@
-// sleep/waitForTimeout kullanmadan kararliligi saglayan yardimcilar.
-// Playwright'in otomatik beklemesi cogu durumu cozer; buradakiler ise
-// "opsiyonel/gecikmeli" UI parcalari (cerez banner'i, sepet modali) ve
-// lazy-load listeler icin gerekli olan kosul-tabanli bekleme mantigini tasir.
+// Stability helpers that avoid fixed sleeps. Playwright's auto-waiting covers
+// most cases; what's left are optional/late-arriving UI pieces (cookie banner,
+// cart modal) and lazy-loaded lists, which need an explicit condition to wait on.
 
-// Bir element gorunurse verilen isi yapar, gorunmezse sessizce gecer.
-// Zorunlu olmayan overlay'ler (banner/popup) icin kullanilir.
+// Clicks the element if it shows up, otherwise moves on quietly.
+// Used for overlays that may or may not be there.
 async function dismissIfVisible(locator, timeout = 4000) {
   try {
     await locator.first().waitFor({ state: 'visible', timeout });
@@ -15,8 +14,8 @@ async function dismissIfVisible(locator, timeout = 4000) {
   return true;
 }
 
-// Lazy-load listelerde eleman sayisi ardisik olcumlerde sabitlenene kadar bekler.
-// Sabit sure beklemek yerine DOM'daki sayinin degismemesini kosul olarak kullanir.
+// Waits until a lazy-loaded list stops growing: the condition is that the node
+// count stays the same between two consecutive polls, not that time has passed.
 async function waitForListToSettle(page, selector, { timeout = 15000, polling = 300 } = {}) {
   await page.waitForFunction(
     (sel) => {
@@ -31,21 +30,4 @@ async function waitForListToSettle(page, selector, { timeout = 15000, polling = 
   return page.locator(selector).count();
 }
 
-// Kisa sureli kararsizliklarda (network jitter, yeniden render) bir islemi
-// artan bekleme ile tekrar dener. Raporlanabilir bir hata mesaji ile sonlanir.
-async function retry(action, { attempts = 3, backoff = 400, label = 'islem' } = {}) {
-  let lastError;
-  for (let i = 1; i <= attempts; i += 1) {
-    try {
-      return await action();
-    } catch (error) {
-      lastError = error;
-      if (i < attempts) {
-        await new Promise((resolve) => setTimeout(resolve, backoff * i));
-      }
-    }
-  }
-  throw new Error(`${label} ${attempts} denemede basarisiz oldu: ${lastError.message}`);
-}
-
-module.exports = { dismissIfVisible, waitForListToSettle, retry };
+module.exports = { dismissIfVisible, waitForListToSettle };

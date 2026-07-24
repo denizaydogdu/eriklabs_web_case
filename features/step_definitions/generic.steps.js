@@ -2,9 +2,8 @@ const { Given, When, Then } = require('@cucumber/cucumber');
 const { expect } = require('@playwright/test');
 const { resolveElement, resolvePage } = require('../support/element-registry');
 
-// Senaryolarin buyuk bolumu bu genel adimlarla yazilir. Element ve sayfa
-// isimleri element-registry uzerinden locator'lara cozulur; feature
-// dosyalarinda selector yer almaz.
+// Most scenarios are written with these. Element and page names resolve to
+// locators through the element registry, so feature files stay selector-free.
 
 function locatorFor(world, name) {
   const descriptor = resolveElement(name);
@@ -19,7 +18,7 @@ When('{string} elementine tıklanır', async function (elementName) {
   await locatorFor(this, elementName).first().click();
 });
 
-// Header'daki hesap menusu gibi hover ile acilan bilesenler icin.
+// For components that only open on hover, like the header account menu.
 When('{string} elementinin üzerine gelinir', async function (elementName) {
   await locatorFor(this, elementName).first().hover();
 });

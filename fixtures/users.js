@@ -1,11 +1,11 @@
 const { config } = require('../config/config');
 
-// Negatif senaryolarda kullanilan kullanicilar. Gecerli kullanici bilgisi
-// koda gomulmez, .env uzerinden okunur.
+// Users for the negative scenarios. Real credentials are never in the code;
+// they come from .env.
 //
-// Not: e-bebek hatali sifre denemelerini sayiyor ("Kalan deneme hakkiniz").
-// Bu yuzden gercek hesaba yalnizca tek bir hatali sifre senaryosu
-// gonderiliyor; diger negatif durumlar hesaba dokunmadan test ediliyor.
+// e-bebek counts failed password attempts ("Kalan deneme hakkınız"), so only one
+// wrong-password case is ever sent to the real account. The rest are checked
+// without touching it.
 const users = {
   'hatalı şifre': {
     get phone() {

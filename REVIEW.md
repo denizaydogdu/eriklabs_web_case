@@ -60,9 +60,8 @@ belgelendi, ancak sürüm yükseltmelerinde tekrar kontrol edilmesi gereken bir 
 
 **6. Sepet satırı seçimi indekse dayalı.**
 `1. ürünün adedi bir artırılır` gibi adımlar satır sırasını kullanıyor. Sepet
-sıralaması değişirse yanlış satır üzerinde işlem yapılabilir. `CartPage` içinde
-başlığa göre satır seçen `lineByTitle` mevcut; senaryolar ürün adı ile
-çalışacak biçimde genişletilebilir.
+sıralaması değişirse yanlış satır üzerinde işlem yapılabilir. Adımların ürün
+adıyla çalışacak biçimde genişletilmesi daha sağlam olurdu.
 
 ## Yapılmayanlar
 

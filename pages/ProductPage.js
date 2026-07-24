@@ -1,6 +1,5 @@
 const { BasePage } = require('./BasePage');
 const locators = require('./locators');
-const { parsePrice } = require('../utils/price');
 
 class ProductPage extends BasePage {
   constructor(page) {
@@ -18,13 +17,8 @@ class ProductPage extends BasePage {
     return (await this.title.first().innerText()).trim();
   }
 
-  async price() {
-    const priceText = await this.locator(locators.product.price).first().innerText();
-    return parsePrice(priceText);
-  }
-
-  // Sepete ekleme sonrasi sagdan acilan modal tiklamalari engelledigi icin
-  // ekleme isleminin bir parcasi olarak kapatiliyor.
+  // Adding to the cart pops a side modal that blocks further clicks, so closing
+  // it is part of the action rather than something callers have to remember.
   async addToCart() {
     await this.addToCartButton.first().waitFor({ state: 'visible' });
     await this.addToCartButton.first().click();

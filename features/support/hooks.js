@@ -3,8 +3,8 @@ const path = require('path');
 const { BeforeAll, Before, After, AfterAll, Status } = require('@cucumber/cucumber');
 const { chromium } = require('@playwright/test');
 const { ContentType } = require('allure-js-commons');
-// Allure'un cucumber entegrasyonu, ek dosyalarin (screenshot, trace) rapora
-// aktarilmasini saglayan calisma zamanini bu import ile kuruyor.
+// This import is what installs Allure's cucumber runtime, which is how
+// attachments (screenshots, traces) find their way into the report.
 require('allure-cucumberjs');
 const { config } = require('../../config/config');
 
@@ -24,7 +24,7 @@ AfterAll(async function () {
   }
 });
 
-// Her senaryo icin yeni context: temiz cerez, storage ve sepet.
+// A fresh context per scenario: clean cookies, storage and cart.
 Before(async function () {
   await this.openBrowser(browser);
 });
@@ -42,8 +42,8 @@ After(async function ({ pickle, result }) {
     fs.mkdirSync(tracesDir, { recursive: true });
     await this.context.tracing.stop({ path: tracePath });
 
-    // Trace yalnizca hata durumunda saklaniyor; basarili kosumlarda
-    // gereksiz dosya birikmemesi icin siliniyor.
+    // Traces are only kept for failures; successful runs would just pile up
+    // files nobody looks at.
     if (failed) {
       await this.attach(fs.readFileSync(tracePath), {
         mediaType: ContentType.PLAYWRIGHT_TRACE,
@@ -57,7 +57,7 @@ After(async function ({ pickle, result }) {
   await this.closeBrowser();
 });
 
-// Allure raporunda ortam bilgisi gorunsun diye calisma parametrelerini yaziyoruz.
+// Run parameters, so the report says which environment produced these results.
 function writeAllureEnvironment() {
   fs.mkdirSync(resultsDir, { recursive: true });
   const lines = [

@@ -31,9 +31,8 @@ Then('kullanıcının giriş yapmış olduğu doğrulanır', async function () {
   await expect(this.pages.account.logoutLink.first()).toBeVisible();
 });
 
-// Hesap menusu yalnizca magaza sayfalarinin header'inda bulunuyor; giris
-// ekraninda sadelestirilmis bir header var. Bu yuzden misafir dogrulamasi
-// once ana sayfaya donuyor.
+// The account menu only exists in the storefront header; the login screen has a
+// stripped-down one. So the guest check goes back to the home page first.
 Then('kullanıcının misafir durumunda olduğu doğrulanır', async function () {
   await this.pages.home.open();
   await this.pages.account.openAccountMenu();

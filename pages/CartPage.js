@@ -2,11 +2,11 @@ const { BasePage } = require('./BasePage');
 const locators = require('./locators');
 const { parsePrice } = require('../utils/price');
 
-// Sepet satirlarinda fiyat iki bicimde gorunuyor:
-//  - indirimli urun: .old-price (liste fiyati uzerinden satir toplami) + .product-price-discount
-//  - indirimsiz urun: .product-price
-// "Urunler Toplami" ozet satiri liste fiyatlari uzerinden hesaplandigi icin
-// dogrulamada satir basina liste tutarini kullaniyoruz.
+// Cart lines show their price in one of two shapes:
+//  - discounted item: .old-price (line total at list price) + .product-price-discount
+//  - regular item:    .product-price
+// The "Ürünler Toplamı" summary adds up list prices, so the assertions read the
+// list amount per line.
 class CartPage extends BasePage {
   constructor(page) {
     super(page);
@@ -31,10 +31,6 @@ class CartPage extends BasePage {
 
   lineByIndex(index) {
     return this.lineItems.nth(index);
-  }
-
-  lineByTitle(title) {
-    return this.lineItems.filter({ hasText: title }).first();
   }
 
   async titles() {
@@ -65,7 +61,7 @@ class CartPage extends BasePage {
     const line = this.lineByIndex(index);
     const before = await this.quantityOf(index);
     await line.locator(locators.cart.increaseButton).click();
-    // Adet guncellemesi asenkron; DOM'daki deger degisene kadar bekliyoruz.
+    // The quantity update is async, so wait for the DOM value to actually change.
     await this.page.waitForFunction(
       ({ selector, quantitySelector, idx, previous }) => {
         const item = document.querySelectorAll(selector)[idx];
@@ -84,8 +80,8 @@ class CartPage extends BasePage {
     return before + 1;
   }
 
-  // Silme islemi once bir onay modali aciyor; silme ancak modaldeki
-  // "Sil" butonuna basildiginda gerceklesiyor.
+  // Removing a line opens a confirmation modal first; nothing is deleted until
+  // its "Sil" button is clicked.
   async removeLine(index) {
     const before = await this.lineCount();
     await this.lineByIndex(index).locator(locators.cart.removeButton).click();

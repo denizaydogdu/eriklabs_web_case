@@ -3,9 +3,9 @@ const { expect } = require('@playwright/test');
 const { cartCategory } = require('../../fixtures/testdata');
 const { priceEquals } = require('../../utils/price');
 
-// Sepet ozeti, satir adedi guncellendikten sonra ayri bir istekle yeniden
-// hesaplaniyor. Tek seferlik okuma eski tutari yakalayabildigi icin
-// beklenen degere ulasilana kadar tutari yeniden okuyoruz.
+// The cart summary is recalculated by a separate request after a line quantity
+// changes. Reading it once can catch the stale amount, so the value is re-read
+// until it reaches what we expect.
 async function expectSubtotal(world, expected, tolerance = 0.02) {
   let lastRead = null;
   try {
@@ -31,8 +31,8 @@ async function expectSubtotal(world, expected, tolerance = 0.02) {
   }
 }
 
-// Urunler kosum aninda kategori listesinden seciliyor; boylece stok veya
-// katalog degisikliginde senaryo kirilmiyor.
+// Products are picked from a category listing at runtime, so the scenario
+// survives stock and catalogue changes.
 Given('sepete {int} farklı ürün eklenir', async function (count) {
   await this.pages.search.goto(cartCategory);
   await this.pages.search.waitForResults();
@@ -82,8 +82,8 @@ Then('adedi artırılan ürünün adedinin {int} olduğu doğrulanır', async fu
   expect(quantity).toBe(expected);
 });
 
-// Ara toplamin dogrulugunu iki bagimsiz yoldan olcuyoruz: once satir
-// tutarlarinin toplami, sonra yapilan islemlerin tutara yansimasi.
+// The subtotal is checked two independent ways: against the sum of the line
+// amounts, and against how each action should have moved it.
 Then('ara toplamın satır tutarlarının toplamına eşit olduğu doğrulanır', async function () {
   const sumOfLines = await this.pages.cart.sumOfLineTotals();
   await expectSubtotal(this, sumOfLines);

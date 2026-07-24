@@ -1,8 +1,8 @@
 const locators = require('../../pages/locators');
 
-// Generic step'ler senaryolarda selector gormemek icin elementleri is
-// diliyle isimlendirir. Bu tablo o isimleri tek kaynaktaki locator
-// tanimlarina baglar; selector degisirse yalnizca locators.js guncellenir.
+// Generic steps refer to elements by business-facing names so that scenarios
+// never contain a selector. This table maps those names onto the single set of
+// locator definitions, which keeps selector changes down to one file.
 const elements = {
   'giriş yap linki': locators.header.loginLink,
   'arama kutusu': locators.header.searchBox,

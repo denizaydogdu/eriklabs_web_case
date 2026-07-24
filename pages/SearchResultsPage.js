@@ -2,12 +2,11 @@ const { BasePage } = require('./BasePage');
 const locators = require('./locators');
 const { waitForListToSettle } = require('../utils/waits');
 
-// Arama sonuclari lazy-load ile geliyor; urun sayisi sabitlenene kadar
-// bekleyip oyle okuyoruz.
+// Search results load lazily, so the list is read only once the item count
+// has settled.
 class SearchResultsPage extends BasePage {
   constructor(page) {
     super(page);
-    this.productAnchors = this.locator(locators.search.productAnchor);
     this.productTitles = this.locator(locators.search.productTitle);
     this.heading = this.locator(locators.search.pageHeading);
   }
@@ -28,7 +27,7 @@ class SearchResultsPage extends BasePage {
   }
 
   async productLinks(limit = 10) {
-    const anchors = this.locator(locators.search.anyProductAnchor);
+    const anchors = this.locator(locators.search.productAnchor);
     await anchors.first().waitFor({ state: 'visible' });
     const hrefs = await anchors.evaluateAll((nodes) =>
       nodes.map((node) => (node.getAttribute('href') || '').split('#')[0]).filter(Boolean),
@@ -36,9 +35,8 @@ class SearchResultsPage extends BasePage {
     return [...new Set(hrefs)].slice(0, limit);
   }
 
-  // Sonuclarin arama terimiyle iliskili olup olmadigini olcuyoruz.
-  // Terim birden fazla kelime iceriyorsa kelimelerden herhangi birinin
-  // gecmesi iliski icin yeterli sayiliyor.
+  // How much of the result set actually relates to what was searched for.
+  // Multi-word terms count as related when any word of the term shows up.
   async relatedRatio(term) {
     const titles = await this.titles();
     if (titles.length === 0) {

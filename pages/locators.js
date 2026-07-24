@@ -1,27 +1,24 @@
-// Tum selector'lar tek noktada. Sayfa nesneleri ve generic step'lerin
-// element registry'si buradan beslenir; boylece bir selector degisirse
-// yalnizca burasi guncellenir.
+// Every selector lives here. Page objects and the element registry behind the
+// generic steps both read from this file, so a changed selector is a one-line fix.
 //
-// Secim onceligi: anlamli id > role/metin > stabil CSS class. e-bebek bir
-// SAP Spartacus (Angular) storefront'u; id'ler ve component class'lari stabil,
-// kirilgan XPath zincirlerinden kacinildi.
+// Preference order: meaningful id > role/text > stable CSS class. e-bebek runs on
+// SAP Spartacus (Angular), where ids and component classes are stable enough that
+// brittle XPath chains were never needed.
 
 module.exports = {
   common: {
-    cookieBanner: 'section.cookies',
     cookieClose: 'section.cookies button',
     addToCartModal: '.right-side-modal.modal.show',
     addToCartModalClose: '.right-side-modal.modal.show .close-button',
   },
 
-  // Hesap menusu bir flyout: linkler uzerine gelinene kadar DOM'da olsa da
-  // gorunur degil. Misafir ve giris yapmis kullanicida farkli linkler
-  // render edildigi icin oturum durumu bu linkler uzerinden dogrulanir.
+  // The account menu is a flyout: its links sit in the DOM but stay invisible
+  // until you hover it. Guests and signed-in users get different links rendered,
+  // which is what the session assertions rely on.
   header: {
     accountMenu: 'cx-navigation-ui.accNavComponent',
     loginLink: '#lnkLoginNavNode',
     logoutLink: '#lnkSignOutNavNode',
-    ordersLink: '#lnkOrderHistoryNavNode',
     searchBox: '#txtSearchBox',
     cartLink: 'a[href="/cart"]',
   },
@@ -38,27 +35,21 @@ module.exports = {
     productAnchor: '.product-list-page a.product-item-anchor',
     anyProductAnchor: 'a.product-item-anchor',
     productTitle: '.description.plist-desc',
-    resultCount: '.product-list-page',
     pageHeading: 'h1',
   },
 
   product: {
     title: 'h1',
     addToCartButton: 'button.btn-add',
-    price: '.product-price, .prices-content .product-price-discount, #txtPrice',
   },
 
   cart: {
     lineItem: '.basket-product-item',
     lineTitle: 'h2',
-    lineBrand: 'a.brandName',
-    lineLink: 'a[href*="-p-"]',
     quantityText: '.quantity-text',
     increaseButton: '.plus-btn',
-    decreaseButton: '.minus-btn',
     removeButton: '.remove-item',
     removeConfirmButton: '.modal.show .btn-remove',
-    priceDiscounted: '.product-price-discount',
     priceOld: '.old-price',
     priceRegular: '.product-price',
     summaryItem: '.summary-item',

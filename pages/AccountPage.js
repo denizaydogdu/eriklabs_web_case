@@ -1,10 +1,9 @@
 const { BasePage } = require('./BasePage');
 const locators = require('./locators');
 
-// Oturum durumunun dogrulama noktasi. Header'daki hesap menusu bir flyout
-// oldugu icin once uzerine geliniyor, sonra menudeki link kontrol ediliyor.
-// Ikinci ve daha guclu kanit: giris yapilmamis kullanici /my-account
-// adresine gittiginde site /login sayfasina yonlendiriyor.
+// Where session state gets checked. The header account menu is a hover flyout,
+// so it has to be opened before its links can be asserted on. The stronger
+// second signal: a guest hitting /my-account gets redirected to /login.
 class AccountPage extends BasePage {
   constructor(page) {
     super(page);
@@ -15,11 +14,6 @@ class AccountPage extends BasePage {
 
   async openAccountMenu() {
     await this.accountMenu.first().hover();
-  }
-
-  async isLoggedIn() {
-    await this.openAccountMenu();
-    return this.logoutLink.first().isVisible();
   }
 
   async logout() {

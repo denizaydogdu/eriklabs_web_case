@@ -9,17 +9,17 @@ const { AccountPage } = require('../../pages/AccountPage');
 
 setDefaultTimeout(config.defaultTimeout * 3);
 
-// Her senaryo kendi World ornegini alir. Tarayici context'i de senaryo
-// basina acildigi icin cerez/oturum/sepet verisi senaryolar arasinda
-// tasinmaz; paralel kosumda izolasyon bu sayede saglanir.
+// Every scenario gets its own World instance, and its own browser context on
+// top of that, so cookies, session and cart never leak from one scenario into
+// the next. That is what makes the parallel run safe.
 class EbebekWorld extends World {
   constructor(options) {
     super(options);
     this.context = null;
     this.page = null;
     this.pages = {};
-    // Senaryo icinde adimlar arasi tasinan veriler (secilen urunler,
-    // olculen tutarlar) burada tutulur; global degisken kullanilmaz.
+    // Data carried between steps of a scenario (chosen products, measured
+    // amounts) lives here rather than in a module-level variable.
     this.state = {};
   }
 

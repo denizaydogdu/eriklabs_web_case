@@ -2,8 +2,8 @@ const { expect } = require('@playwright/test');
 const { BasePage } = require('./BasePage');
 const locators = require('./locators');
 
-// e-bebek girisi iki adimli ilerliyor: once telefon numarasi dogrulaniyor,
-// numara sisteme kayitliysa ayni ekranda sifre alani aciliyor.
+// Signing in happens in two steps: the phone number is checked first, and if it
+// belongs to a registered account the password field appears on the same screen.
 class LoginPage extends BasePage {
   constructor(page) {
     super(page);
@@ -19,10 +19,9 @@ class LoginPage extends BasePage {
     await this.phoneInput.waitFor({ state: 'visible' });
   }
 
-  // Telefon alani maskeli. Rakamlari tek tek yazmak maskenin imlec
-  // konumlandirmasi ile yarisip haneleri karistirabildigi icin deger tek
-  // seferde yaziliyor; ardindan Angular formuna islendigi dogrulanip
-  // gonderiliyor.
+  // The phone field is masked and Angular picks the value up asynchronously.
+  // Typing digit by digit races with the mask and can reorder them, so the value
+  // goes in one shot and we confirm it landed before submitting.
   async submitPhone(phone) {
     await this.phoneInput.click();
     await this.phoneInput.fill(phone);
@@ -44,17 +43,6 @@ class LoginPage extends BasePage {
     await this.submitPassword(password);
     await this.page.waitForURL((url) => !url.pathname.startsWith('/login'));
     await this.dismissOverlays();
-  }
-
-  async switchToEmailTab() {
-    await this.emailTab.first().click();
-    await this.emailInput.waitFor({ state: 'visible' });
-  }
-
-  // Hata metinleri sayfada farkli kapsayicilarda cikabiliyor; senaryolar
-  // beklenen metni verdigi icin metnin sayfada gorunur olmasi yeterli.
-  errorMessage(text) {
-    return this.page.getByText(text, { exact: false });
   }
 }
 
