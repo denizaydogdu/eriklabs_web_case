@@ -20,8 +20,11 @@ class SearchResultsPage extends BasePage {
     await waitForListToSettle(this.page, locators.search.anyProductAnchor).catch(() => {});
   }
 
+  // An empty result set is a legitimate outcome, not a failure: the site happens
+  // to always return something today, but the no-results scenario must still be
+  // able to assert on an empty list instead of timing out waiting for a title.
   async titles() {
-    await this.productTitles.first().waitFor({ state: 'visible' });
+    await this.productTitles.first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
     const texts = await this.productTitles.allTextContents();
     return texts.map((t) => t.trim()).filter(Boolean);
   }

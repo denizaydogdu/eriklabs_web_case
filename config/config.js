@@ -6,7 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 function required(name) {
   const value = process.env[name];
   if (value === undefined || value === '') {
-    throw new Error(`Zorunlu ortam degiskeni tanimli degil: ${name}. .env dosyasini .env.example uzerinden olusturun.`);
+    throw new Error(`Zorunlu ortam değişkeni tanımlı değil: ${name}. .env dosyasını .env.example üzerinden oluşturun.`);
   }
   return value;
 }

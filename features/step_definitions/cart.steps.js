@@ -8,13 +8,15 @@ const { priceEquals } = require('../../utils/price');
 // until it reaches what we expect.
 async function expectSubtotal(world, expected, tolerance = 0.02) {
   let lastRead = null;
+  let lastError = 'bilinmiyor';
   try {
     await expect
       .poll(
         async () => {
           try {
             lastRead = await world.pages.cart.subtotal();
-          } catch {
+          } catch (error) {
+            lastError = error.message;
             return false;
           }
           return priceEquals(lastRead, expected, tolerance);
@@ -24,8 +26,8 @@ async function expectSubtotal(world, expected, tolerance = 0.02) {
       .toBe(true);
   } catch {
     throw new Error(
-      `Ara toplam beklenen degere ulasmadi. Beklenen: ${expected.toFixed(2)} TL, son okunan: ${
-        lastRead === null ? 'okunamadi' : `${lastRead.toFixed(2)} TL`
+      `Ara toplam beklenen değere ulaşmadı. Beklenen: ${expected.toFixed(2)} TL, son okunan: ${
+        lastRead === null ? `okunamadı (${lastError})` : `${lastRead.toFixed(2)} TL`
       }`,
     );
   }
@@ -39,7 +41,7 @@ Given('sepete {int} farklı ürün eklenir', async function (count) {
 
   const links = await this.pages.search.productLinks(count + 4);
   const chosen = links.slice(0, count);
-  expect(chosen.length, 'kategoride yeterli urun bulunamadi').toBe(count);
+  expect(chosen.length, 'kategoride yeterli ürün bulunamadı').toBe(count);
 
   this.state.addedProducts = [];
   for (const link of chosen) {
@@ -104,9 +106,9 @@ Then('sepetteki ürünlerin korunduğu doğrulanır', async function () {
   await this.pages.cart.open();
   const titles = await this.pages.cart.titles();
 
-  expect(titles.length, 'giris sonrasi sepet bos').toBeGreaterThan(0);
+  expect(titles.length, 'giriş sonrası sepet boş').toBeGreaterThan(0);
   for (const product of this.state.addedProducts) {
     const found = titles.some((title) => title.includes(product.name) || product.name.includes(title));
-    expect(found, `"${product.name}" urunu giris sonrasi sepette bulunamadi`).toBe(true);
+    expect(found, `"${product.name}" ürünü giriş sonrası sepette bulunamadı`).toBe(true);
   }
 });

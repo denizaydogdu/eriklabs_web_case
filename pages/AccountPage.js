@@ -20,10 +20,6 @@ class AccountPage extends BasePage {
     await this.goto('/logout');
     await this.page.waitForURL((url) => !url.pathname.startsWith('/logout'));
   }
-
-  async openProtectedPage() {
-    await this.goto('/my-account/orders');
-  }
 }
 
 module.exports = { AccountPage };

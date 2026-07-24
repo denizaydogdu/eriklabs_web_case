@@ -2,22 +2,35 @@
 // comma is the decimal one. Parsing this correctly is what the cart subtotal
 // assertions are built on.
 
+const AMOUNT = String.raw`-?\d[\d.\s]*(?:,\d+)?`;
+const WITH_CURRENCY = new RegExp(`${AMOUNT}\\s*(?:TL|₺)`, 'g');
+const BARE_AMOUNT = new RegExp(AMOUNT);
+
+// A summary row reads as one blob of text ("Ürünler Toplamı 1.299,90 TL"), and
+// the label can carry its own number ("... (2 Ürün)"). Taking the first number
+// in the string would silently return the item count instead of the price, so
+// amounts carrying a currency suffix win.
 function parsePrice(text) {
   if (text === null || text === undefined) {
     throw new Error('parsePrice: boş değer verildi');
   }
 
-  const match = String(text).replace(/ /g, ' ').match(/-?\d[\d.\s]*(,\d+)?/);
-  if (!match) {
+  const normalizedText = String(text).replace(/ /g, ' ');
+  const withCurrency = normalizedText.match(WITH_CURRENCY);
+  const raw = withCurrency ? withCurrency[withCurrency.length - 1] : (normalizedText.match(BARE_AMOUNT) || [])[0];
+
+  if (!raw) {
     throw new Error(`parsePrice: fiyat bulunamadı -> "${text}"`);
   }
 
-  const normalized = match[0]
-    .replace(/\s/g, '')
-    .replace(/\./g, '')
-    .replace(',', '.');
+  const value = Number(
+    raw
+      .replace(/(?:TL|₺)/g, '')
+      .replace(/\s/g, '')
+      .replace(/\./g, '')
+      .replace(',', '.'),
+  );
 
-  const value = Number(normalized);
   if (Number.isNaN(value)) {
     throw new Error(`parsePrice: sayıya çevrilemedi -> "${text}"`);
   }

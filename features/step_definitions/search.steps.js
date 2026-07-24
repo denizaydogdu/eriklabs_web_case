@@ -12,10 +12,10 @@ Then('sonuçların arama terimiyle ilişkili olduğu doğrulanır', async functi
   const ratio = await this.pages.search.relatedRatio(this.state.searchTerm);
   const titles = await this.pages.search.titles();
 
-  expect(titles.length, 'arama sonucu urun listesi bos').toBeGreaterThan(0);
+  expect(titles.length, 'arama sonucu ürün listesi boş').toBeGreaterThan(0);
   expect(
     ratio,
-    `sonuclarin yalnizca %${Math.round(ratio * 100)}'i "${this.state.searchTerm}" terimiyle iliskili`,
+    `sonuçların yalnızca %${Math.round(ratio * 100)}'i "${this.state.searchTerm}" terimiyle ilişkili`,
   ).toBeGreaterThanOrEqual(0.7);
 });
 
@@ -23,7 +23,7 @@ Then('sonuçların arama terimiyle ilişkili olmadığı doğrulanır', async fu
   const ratio = await this.pages.search.relatedRatio(this.state.searchTerm);
   expect(
     ratio,
-    `karsiligi olmayan arama icin ilgili sonuc beklenmiyordu (oran: ${ratio})`,
+    `karşılığı olmayan arama için ilgili sonuç beklenmiyordu (oran: ${ratio})`,
   ).toBeLessThan(0.1);
 });
 

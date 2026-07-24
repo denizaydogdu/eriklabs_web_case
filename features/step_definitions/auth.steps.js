@@ -5,25 +5,20 @@ const { users } = require('../../fixtures/users');
 
 Given('geçerli kullanıcı bilgileri ile giriş yapılır', async function () {
   await this.pages.login.login(config.credentials);
-  this.state.loggedIn = true;
 });
 
 When('{string} kullanıcısı ile giriş denenir', async function (userKey) {
   const user = users[userKey];
   if (!user) {
-    throw new Error(`"${userKey}" test kullanicisi tanimli degil`);
+    throw new Error(`"${userKey}" test kullanıcısı tanımlı değil`);
   }
   await this.pages.login.open();
   await this.pages.login.submitPhone(user.phone);
 
+  // Numara geçersizse akış şifre adımına hiç ulaşmıyor.
   if (user.password !== undefined) {
     await this.pages.login.submitPassword(user.password);
   }
-});
-
-When('telefon numarası {string} olarak girilip devam edilir', async function (phone) {
-  await this.pages.login.open();
-  await this.pages.login.submitPhone(phone);
 });
 
 Then('kullanıcının giriş yapmış olduğu doğrulanır', async function () {
@@ -41,12 +36,4 @@ Then('kullanıcının misafir durumunda olduğu doğrulanır', async function ()
 
 When('oturum kapatılır', async function () {
   await this.pages.account.logout();
-  this.state.loggedIn = false;
-});
-
-Then('oturum gerektiren sayfaya erişimin engellendiği doğrulanır', async function () {
-  await this.pages.account.openProtectedPage();
-  await expect
-    .poll(async () => new URL(this.page.url()).pathname, { timeout: 15000 })
-    .toContain('/login');
 });

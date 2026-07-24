@@ -1,13 +1,13 @@
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { expect } = require('@playwright/test');
 const { resolveElement, resolvePage } = require('../support/element-registry');
+const { resolveLocator } = require('../../utils/locator');
 
 // Most scenarios are written with these. Element and page names resolve to
 // locators through the element registry, so feature files stay selector-free.
 
 function locatorFor(world, name) {
-  const descriptor = resolveElement(name);
-  return world.pages.home.locator(descriptor);
+  return resolveLocator(world.page, resolveElement(name));
 }
 
 Given('{string} sayfasına gidilir', async function (pageName) {
@@ -43,14 +43,17 @@ Then('{string} metninin görünür olduğu kontrol edilir', async function (text
   await expect(this.page.getByText(text, { exact: false }).first()).toBeVisible();
 });
 
+// Checking only the first match would pass while a second, visible copy of the
+// same text sits further down the DOM, so this asserts that nothing visible
+// carries the text.
 Then('{string} metninin görünmediği kontrol edilir', async function (text) {
-  await expect(this.page.getByText(text, { exact: false }).first()).toBeHidden();
+  await expect(this.page.getByText(text, { exact: false }).filter({ visible: true })).toHaveCount(0);
 });
 
 Then('adres satırının {string} ile başladığı kontrol edilir', async function (expectedPath) {
   await expect
-    .poll(async () => new URL(this.page.url()).pathname, { timeout: 15000 })
-    .toContain(expectedPath);
+    .poll(async () => new URL(this.page.url()).pathname.startsWith(expectedPath), { timeout: 15000 })
+    .toBe(true);
 });
 
 Then('{string} elementinin sayısının {int} olduğu kontrol edilir', async function (elementName, expected) {

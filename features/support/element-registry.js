@@ -38,7 +38,7 @@ function resolveElement(name) {
   const descriptor = elements[key];
   if (!descriptor) {
     throw new Error(
-      `"${name}" element kaydi bulunamadi. Tanimli elementler: ${Object.keys(elements).join(', ')}`,
+      `"${name}" element kaydı bulunamadı. Tanımlı elementler: ${Object.keys(elements).join(', ')}`,
     );
   }
   return descriptor;
@@ -48,7 +48,7 @@ function resolvePage(name) {
   const key = name.toLocaleLowerCase('tr-TR').trim();
   const path = pages[key];
   if (!path) {
-    throw new Error(`"${name}" sayfa kaydi bulunamadi. Tanimli sayfalar: ${Object.keys(pages).join(', ')}`);
+    throw new Error(`"${name}" sayfa kaydı bulunamadı. Tanımlı sayfalar: ${Object.keys(pages).join(', ')}`);
   }
   return path;
 }

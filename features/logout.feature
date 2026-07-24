@@ -8,4 +8,6 @@
     Diyelim ki geçerli kullanıcı bilgileri ile giriş yapılır
     Eğer ki oturum kapatılır
     O zaman kullanıcının misafir durumunda olduğu doğrulanır
-    Ve oturum gerektiren sayfaya erişimin engellendiği doğrulanır
+
+    Eğer ki "siparişlerim" sayfasına gidilir
+    O zaman adres satırının "/login" ile başladığı kontrol edilir
