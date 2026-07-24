@@ -71,5 +71,6 @@ başlığa göre satır seçen `lineByTitle` mevcut; senaryolar ürün adı ile
   kapsam dışında bırakıldı.
 - **CI pipeline (B2):** Zaman kısıtı nedeniyle eklenmedi. Proje headless
   koşacak biçimde yapılandırıldığı için pipeline eklemek doğrudan mümkün.
-- **Docker doğrulaması:** `Dockerfile` yazıldı, ancak geliştirme makinesinde
-  Docker kurulu olmadığı için imaj build edilerek doğrulanamadı.
+- **Docker imajının koşum doğrulaması:** `Dockerfile` yazıldı ve temel alınan
+  Playwright imajının sürümü projeyle hizalandı, ancak imaj build edilip
+  içinde tam senaryo seti koşturulmadı.

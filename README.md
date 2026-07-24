@@ -1,13 +1,15 @@
 # e-bebek Web Test Otomasyonu
 
 e-bebek (https://www.e-bebek.com) üzerinde uçtan uca web test otomasyonu.
-Teknoloji yığını: **JavaScript + Playwright + Cucumber + Allure**, Page Object Pattern ile.
+JavaScript + Playwright + Cucumber + Allure, Page Object Pattern ile.
+
+Testler canlı siteye karşı koşar; ayrı bir test ortamı yoktur.
 
 ## Gereksinimler
 
-- Node.js 18 veya üzeri
-- Allure raporunu üretmek için Java 8+ (Allure CLI projeye bağımlılık olarak
-  eklendiği için ayrıca kurulum gerekmez)
+- Node.js 18+
+- Allure raporu için Java 8+ (Allure CLI proje bağımlılığı olarak gelir, ayrıca kurulum gerekmez)
+- Docker ile koşmak isteyenler için Docker (opsiyonel)
 
 ## Kurulum
 
@@ -26,33 +28,32 @@ EBEBEK_PASSWORD=********
 HEADLESS=true
 ```
 
-Kod içinde hard-coded URL veya kullanıcı bilgisi bulunmaz; tüm ortam parametreleri
-`config/config.js` üzerinden okunur ve zorunlu değişkenler eksikse koşum anlaşılır
-bir hata ile durur. `.env` dosyası `.gitignore` içindedir.
+Base URL, kullanıcı bilgileri ve zaman aşımları `config/config.js` üzerinden okunur.
+Zorunlu bir değişken eksikse koşum, hangi değişkenin eksik olduğunu söyleyerek durur.
+`.env` versiyon kontrolüne dahil değildir.
 
 ## Çalıştırma
 
 ```bash
-npm test                 # tüm senaryolar, 2 worker ile paralel
-npm run test:parallel    # açıkça paralel profil (WORKERS=4 npm run test:parallel ile worker sayısı değişir)
-npx cucumber-js -p serial   # tek process, hata ayıklamak için
-npm run test:smoke       # @smoke etiketli senaryolar
-npm run test:regression  # @regression etiketli senaryolar
-npm run test:negative    # @negative etiketli senaryolar
+npm test                    # tüm senaryolar, 2 worker ile paralel
+WORKERS=4 npm run test:parallel   # worker sayısını değiştirerek
+npx cucumber-js -p serial   # tek process, hata ayıklarken
+npm run test:smoke          # @smoke
+npm run test:regression     # @regression
+npm run test:negative       # @negative
 ```
 
-Tarayıcıyı görerek koşmak için `.env` içinde `HEADLESS=false` yapın.
+Tarayıcıyı görerek koşmak için `.env` içinde `HEADLESS=false`.
 
 ### Rapor
 
 ```bash
-npm run report           # allure generate + allure open
+npm run report              # allure generate + allure open
 ```
 
-Rapor şunları içerir: senaryo adımları (Gherkin adımları Allure adımı olarak),
-ortam bilgisi (`environment.properties`), etiketler ve **hata durumunda ekran
-görüntüsü + Playwright trace** eki. Trace, Allure'ın trace görüntüleyicisi ile
-açılabilecek içerik tipiyle eklenir.
+Raporda Gherkin adımları Allure adımı olarak, ortam bilgisi (`environment.properties`)
+ve etiketler yer alır. Hata durumunda ekran görüntüsü ve Playwright trace otomatik
+eklenir; trace, Allure'ın trace görüntüleyicisiyle açılır.
 
 ### Docker
 
@@ -61,14 +62,17 @@ docker build -t ebebek-automation .
 docker run --rm --env-file .env -v "$PWD/allure-results:/app/allure-results" ebebek-automation
 ```
 
+İmaj, projedeki Playwright sürümüyle aynı resmi Playwright imajını temel alır
+(`mcr.microsoft.com/playwright:v1.61.1-noble`); tarayıcılar hazır gelir.
+
 ## Senaryolar
 
 | Dosya | Kapsam | Etiketler |
 |---|---|---|
-| `features/login.feature` | Geçerli bilgilerle giriş, hesap menüsünde kullanıcıya özgü linklerin doğrulanması | `@auth @smoke` |
-| `features/login_negative.feature` | Hatalı şifre, eksik haneli telefon, boş alan ve geçersiz e-posta formatı (Scenario Outline + Examples) | `@auth @negative @regression` |
+| `features/login.feature` | Geçerli bilgilerle giriş ve hesap menüsündeki kullanıcıya özgü linklerin doğrulanması | `@auth @smoke` |
+| `features/login_negative.feature` | Hatalı şifre, eksik haneli telefon, boş alan, geçersiz e-posta formatı (Scenario Outline + Examples) | `@auth @negative @regression` |
 | `features/search.feature` | Sonuç dönen ve karşılığı olmayan arama | `@search @smoke @regression` |
-| `features/cart.feature` | İki ürün ekleme, adet artırma, ürün silme ve ara toplamın sayısal doğrulanması | `@cart @regression` |
+| `features/cart.feature` | İki ürün ekleme, adet artırma, ürün silme, ara toplamın sayısal doğrulanması | `@cart @regression` |
 | `features/cart_persistence.feature` | Misafir sepetinin giriş sonrasında korunması | `@cart @auth @regression` |
 | `features/logout.feature` | Çıkış sonrası oturumun gerçekten sonlanması | `@auth @regression` |
 
@@ -77,17 +81,17 @@ docker run --rm --env-file .env -v "$PWD/allure-results:/app/allure-results" ebe
 ```
 config/           ortam değişkenleri ve doğrulaması
 fixtures/         test kullanıcıları ve test verisi
-pages/            page object'ler + locators.js (tüm selector'lar tek noktada)
+pages/            page object'ler + locators.js (tüm selector'lar burada)
 utils/            fiyat parse, bekleme/retry yardımcıları
 features/
   *.feature             Türkçe Gherkin senaryoları
-  step_definitions/     generic + alan bazlı step'ler
+  step_definitions/     generic ve alan bazlı step'ler
   support/              World, hooks, element registry
 ```
 
-### Hazır (generic) step kütüphanesi
+### Hazır (generic) step'ler
 
-Senaryoların büyük bölümü tekrar kullanılabilir step'lerle yazıldı:
+Senaryoların çoğu tekrar kullanılabilir step'lerle yazıldı:
 
 ```gherkin
 Diyelim ki "giriş" sayfasına gidilir
@@ -96,72 +100,67 @@ Ve "e-posta alanı" alanına "gecersiz-eposta" yazılır
 O zaman "Geçerli bir e-posta adresi giriniz." metninin görünür olduğu kontrol edilir
 ```
 
-Feature dosyalarında selector yer almaz. Step'lerdeki iş dilindeki element
-isimleri `features/support/element-registry.js` üzerinden `pages/locators.js`
-içindeki tanımlara çözülür. Bir selector değiştiğinde yalnızca `locators.js`
-güncellenir. Alan bilgisi gerektiren işler (giriş akışı, sepet matematiği)
-için ayrıca alan bazlı step'ler yazıldı; aynı işi yapan mükerrer step tanımı yoktur.
+Feature dosyalarında selector geçmez. Step'lerdeki iş dilindeki element isimleri
+(`"e-posta alanı"`, `"hesap menüsü"`) `features/support/element-registry.js`
+üzerinden `pages/locators.js` içindeki tanımlara çözülür. Bir selector değiştiğinde
+tek dosya güncellenir. Giriş akışı ve sepet matematiği gibi alan bilgisi gerektiren
+işler için ayrı step'ler yazıldı.
 
 ### Locator stratejisi
 
-Öncelik sırası: anlamlı `id` > rol/metin tabanlı seçim > stabil CSS sınıfı.
-Site bir SAP Spartacus (Angular) uygulaması olduğu için bileşen sınıfları ve
-`id`'ler kararlı; kırılgan XPath zincirleri kullanılmadı. Örnek:
-`#txtPhoneNumberMobile`, `#btnLoginWithEmail`, `.basket-product-item`,
-`getByRole('button', { name: /giriş yap/i })`.
+Öncelik: anlamlı `id` → rol/metin tabanlı seçim → stabil CSS sınıfı. Site bir SAP
+Spartacus (Angular) uygulaması; `id`'ler ve bileşen sınıfları kararlı olduğu için
+XPath zincirlerine ihtiyaç olmadı. Örnek: `#txtPhoneNumberMobile`,
+`#btnLoginWithEmail`, `.basket-product-item`, `getByRole('button', { name: /giriş yap/i })`.
 
 ## Test izolasyonu ve paralel koşum
 
-İzolasyon iki katmanlıdır:
+İzolasyon iki katmanlı:
 
-1. **Process seviyesi:** Cucumber `parallel: 2` ile senaryolar ayrı worker
-   process'lerinde koşar (`WORKERS` değişkeni ile artırılabilir).
-2. **Senaryo seviyesi:** Tarayıcı bir kez `BeforeAll` ile açılır, ancak **her
-   senaryo kendi `BrowserContext`'ini** alır (`features/support/world.js`).
-   Context senaryo sonunda kapatılır; çerez, oturum ve sepet verisi senaryolar
-   arasında taşınmaz.
+1. **Process seviyesi** — Cucumber `parallel: 2` ile senaryolar ayrı worker
+   process'lerinde koşar (`WORKERS` ile artırılabilir).
+2. **Senaryo seviyesi** — Tarayıcı `BeforeAll` ile bir kez açılır, ancak her senaryo
+   kendi `BrowserContext`'ini alır (`features/support/world.js`) ve senaryo sonunda
+   context kapatılır. Çerez, oturum ve sepet verisi senaryolar arasında taşınmaz.
 
-Senaryolar arasında paylaşılan global durum yoktur; adımlar arası veri
-(seçilen ürünler, ölçülen tutarlar) World üzerindeki `this.state` içinde tutulur.
-Bu sayede misafir sepeti → giriş akışı (S5) diğer senaryoları etkilemeden koşar.
+Senaryolar arasında paylaşılan durum yok; adımlar arası veri (seçilen ürünler,
+ölçülen tutarlar) World üzerindeki `this.state` içinde tutulur. Misafir sepeti →
+giriş akışı da bu sayede diğer senaryoları etkilemeden koşar.
 
 ## Bekleme stratejisi ve çözülen kararsızlıklar
 
-`sleep` / `waitForTimeout` kullanılmadı. Playwright'ın otomatik beklemesi,
-`expect(locator)` ve `expect.poll` tabanlı koşullu beklemeler ile
-`utils/waits.js` içindeki yardımcılar kullanıldı.
+Testlerde sabit bekleme yok; Playwright'ın otomatik beklemesi, `expect(locator)` ve
+`expect.poll` tabanlı koşullu beklemeler ile `utils/waits.js` içindeki yardımcılar
+kullanılıyor.
 
-Koşumlar sırasında karşılaşılan ve çözülen üç gerçek kararsızlık:
+Geliştirme sırasında karşılaşılan ve çözülen üç kararsızlık:
 
 **1. Maskeli telefon alanında karışan haneler.**
 Giriş formundaki telefon alanı maskeli. Rakamları tek tek yazan yaklaşım
-(`pressSequentially`) maskenin imleç konumlandırmasıyla yarıştı ve paralel
-koşumda haneler karıştı (örneğin `5551234567` yerine `5551234657` yazıldı ve
-giriş başarısız oldu). Çözüm: değeri tek işlemde yazmak (`fill`) ve tıklamadan önce
-alandaki değerin gerçekten yerleştiğini `expect.poll` ile doğrulamak
-(`pages/LoginPage.js`). Böylece form hazır olmadan submit edilmiyor.
+(`pressSequentially`) maskenin imleç konumlandırmasıyla yarıştı; paralel koşumda
+haneler yer değiştirdi (örneğin `5551234567` yerine `5551234657`) ve giriş
+başarısız oldu. Çözüm: değeri tek işlemde yazmak (`fill`) ve tıklamadan önce
+değerin forma işlendiğini `expect.poll` ile doğrulamak (`pages/LoginPage.js`).
 
-**2. Sepet özetinin gecikmeli yeniden hesaplanması.**
+**2. Sepet özetinin gecikmeli hesaplanması.**
 Adet artırıldığında satırdaki adet anında güncelleniyor, ancak "Ürünler Toplamı"
 ayrı bir istekle yeniden hesaplanıyor. Tek seferlik okuma eski tutarı yakalayıp
-testi hatalı şekilde kırıyordu. Çözüm: tutarı beklenen değere ulaşana kadar
-yeniden okuyan `expectSubtotal` yardımcısı (`features/step_definitions/cart.steps.js`);
-zaman aşımında son okunan değer hata mesajında raporlanıyor.
+testi hatalı yere kırıyordu. Çözüm: tutarı beklenen değere ulaşana kadar yeniden
+okuyan `expectSubtotal` yardımcısı (`features/step_definitions/cart.steps.js`).
+Zaman aşımında son okunan değer hata mesajına yazılıyor, böylece hata ayıklamak kolay.
 
 **3. Tıklamayı engelleyen overlay'ler.**
-Çerez banner'ı gecikmeli düşüyor, sepete ekleme sonrası sağdan bir modal
-açılıyor ve tıklamaları engelliyor (`ngb-modal-window intercepts pointer events`).
-Çözüm: `utils/waits.js` içindeki `dismissIfVisible` — element kısa bir süre
-içinde görünürse kapatılır, görünmezse beklemeden devam edilir. Sabit bekleme
-yoktur. Ayrıca sepetten ürün silme işlemi bir onay modalı açtığı için silme
-akışı bu onayı da kapsar (`pages/CartPage.js`).
+Çerez banner'ı sayfaya gecikmeli düşüyor, sepete ekleme sonrası sağdan açılan modal
+tıklamaları engelliyor (`ngb-modal-window intercepts pointer events`). Çözüm:
+`utils/waits.js` içindeki `dismissIfVisible` — element kısa sürede görünürse
+kapatılıyor, görünmezse beklenmeden devam ediliyor. Sepetten ürün silme ayrı bir
+onay modalı açtığı için silme akışı bu onayı da kapsıyor (`pages/CartPage.js`).
 
 ## Sepet toplamı doğrulaması
 
-Fiyatlar `1.299,90 TL` biçiminde gelir; `utils/price.js` içindeki `parsePrice`
-binlik ayracını ve para birimini temizleyip sayıya çevirir. Doğrulama ekran
-görüntüsü veya metin eşitliği ile değil, sayısal olarak yapılır ve üç bağımsız
-kontrolden oluşur:
+Fiyatlar `1.299,90 TL` biçiminde geliyor; `utils/price.js` içindeki `parsePrice`
+binlik ayracını ve para birimini temizleyip sayıya çeviriyor. Doğrulama metin
+karşılaştırması ile değil sayısal olarak, üç bağımsız kontrolle yapılıyor:
 
 1. Ara toplam, satır tutarlarının toplamına eşit mi?
 2. Adet bir artırıldığında ara toplam tam olarak birim fiyat kadar arttı mı?
@@ -169,44 +168,39 @@ kontrolden oluşur:
 
 Sepet satırlarında fiyat iki biçimde görünüyor: indirimli üründe `.old-price`
 (liste fiyatı üzerinden satır tutarı) ve `.product-price-discount`, indirimsiz
-üründe `.product-price`. "Ürünler Toplamı" liste fiyatları üzerinden
-hesaplandığı için doğrulamada satır başına liste tutarı kullanılır.
+üründe `.product-price`. "Ürünler Toplamı" liste fiyatları üzerinden hesaplandığı
+için doğrulamada satır başına liste tutarı kullanılıyor.
+
+Kampanyalar ve fiyatlar canlı ortamda değiştiği için sabit tutar beklentisi yerine
+göreli (delta) doğrulama tercih edildi: hesaplama hatası yakalanır, fiyat değişimi
+testi kırmaz.
 
 ## Test verisi
 
-Sepete eklenecek ürünler koşum anında kategori listesinden dinamik seçilir;
-sabit ürün kodu (SKU) tutulmaz, böylece stok veya katalog değişikliğinde
-senaryolar kırılmaz. Arama terimleri ve negatif giriş kombinasyonları
-`fixtures/` altındadır; kullanıcı bilgileri `.env`'den okunur.
+Sepete eklenecek ürünler koşum anında kategori listesinden seçilir; sabit ürün kodu
+(SKU) tutulmaz, böylece bir ürün stoktan kalktığında senaryo kırılmaz. Arama
+terimleri ve negatif giriş kombinasyonları `fixtures/` altında, kullanıcı bilgileri
+`.env` içinde.
 
-## Siteye özgü gözlemler ve senaryo tasarımı
+## Siteye özgü davranışlar
 
-Senaryolar sitenin gerçek davranışı incelenerek tasarlandı. Öne çıkan noktalar:
+Senaryolar sitenin gerçek davranışı incelenerek tasarlandı. Tasarımı etkileyen
+noktalar:
 
-- **Giriş e-posta/şifre değil, telefon + şifre ile iki adımlı ilerliyor:**
-  telefon doğrulandıktan sonra aynı ekranda şifre alanı açılıyor. E-posta sekmesi
-  mevcut ancak kayıtlı olmayan e-posta girildiğinde hata yerine kayıt formu
-  açılıyor; bu nedenle e-posta sekmesi yalnızca format doğrulaması senaryosunda
-  kullanıldı.
-- **Arama hiçbir zaman boş sonuç döndürmüyor.** Anlamsız bir terim aratıldığında
-  bile ("qxzjvbkwmfpldnhtsr") site "665 Adet ürün bulundu" diyerek ilgisiz
-  ürünler listeliyor; literal bir "sonuç bulunamadı" mesajı bulunmuyor. Bu yüzden
-  "sonuç dönmeyen arama" senaryosu, sitenin gerçek davranışına uygun biçimde
-  **dönen sonuçların hiçbirinin arama terimiyle ilişkili olmadığını** doğrular
-  (sonuç dönen aramada ise başlıkların en az %70'i terimle ilişkilidir).
+- **Giriş, e-posta/şifre değil telefon + şifre ile iki adımlı ilerliyor.** Telefon
+  doğrulandıktan sonra aynı ekranda şifre alanı açılıyor. E-posta sekmesi mevcut,
+  ancak kayıtlı olmayan bir e-posta girildiğinde hata yerine kayıt formu açılıyor;
+  bu yüzden e-posta sekmesi yalnızca format doğrulaması senaryosunda kullanıldı.
+- **Arama hiçbir zaman boş sonuç döndürmüyor.** Anlamsız bir terimde bile
+  ("qxzjvbkwmfpldnhtsr") site "665 Adet ürün bulundu" diyerek ilgisiz ürünler
+  listeliyor; "sonuç bulunamadı" gibi bir mesaj yok. Bu nedenle "sonuç dönmeyen
+  arama" senaryosu, dönen sonuçların hiçbirinin arama terimiyle ilişkili olmadığını
+  doğruluyor. Sonuç dönen aramada ise başlıkların en az %70'inin terimle ilişkili
+  olması bekleniyor.
 - **Hatalı şifre denemeleri sayılıyor** ("Kalan deneme hakkınız: 4"). Hesabın
-  kilitlenmemesi için negatif senaryolarda gerçek hesaba yalnızca tek bir hatalı
-  şifre denemesi gönderilir; diğer negatif durumlar hesaba dokunmadan test edilir.
-- **Oturum doğrulaması** hesap menüsü üzerinden yapılır. Menü hover ile açılan bir
-  flyout olduğundan linkler DOM'da olsa da görünür değildir; senaryo önce menüyü
-  açar, sonra görünürlüğü doğrular. Çıkış senaryosu ayrıca oturum gerektiren bir
-  sayfaya erişimin `/login`'e yönlendirildiğini kontrol eder.
-
-## Bilinen sınırlamalar
-
-- Docker imajı bu makinede Docker kurulu olmadığı için build edilerek
-  doğrulanamadı; `Dockerfile` resmi Playwright imajının doğrulanmış
-  `v1.61.1-noble` etiketini kullanır ve proje bağımlılıklarıyla uyumludur.
-- Senaryolar canlı ortama karşı koşar; ürün fiyatı, stok veya kampanya
-  değişiklikleri koşum süresini etkileyebilir. Bu nedenle ürün seçimi dinamiktir
-  ve tutar doğrulamaları göreli (delta) olarak yapılır.
+  kilitlenmemesi için negatif senaryolarda gerçek hesaba tek bir hatalı deneme
+  gönderiliyor; diğer negatif durumlar hesaba dokunmadan test ediliyor.
+- **Oturum doğrulaması hesap menüsü üzerinden yapılıyor.** Menü hover ile açılan bir
+  flyout olduğu için linkler DOM'da olsa da görünür değil; senaryo önce menüyü açıyor,
+  sonra görünürlüğü doğruluyor. Çıkış senaryosu ayrıca oturum gerektiren bir sayfaya
+  erişimin `/login`'e yönlendirildiğini kontrol ediyor.
