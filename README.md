@@ -82,7 +82,7 @@ docker run --rm --env-file .env -v "$PWD/allure-results:/app/allure-results" ebe
 config/           ortam değişkenleri ve doğrulaması
 fixtures/         test kullanıcıları ve test verisi
 pages/            page object'ler + locators.js (tüm selector'lar burada)
-utils/            fiyat parse, bekleme/retry yardımcıları
+utils/            fiyat parse, bekleme ve locator yardımcıları
 features/
   *.feature             Türkçe Gherkin senaryoları
   step_definitions/     generic ve alan bazlı step'ler
