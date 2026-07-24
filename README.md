@@ -136,8 +136,8 @@ Koşumlar sırasında karşılaşılan ve çözülen üç gerçek kararsızlık:
 **1. Maskeli telefon alanında karışan haneler.**
 Giriş formundaki telefon alanı maskeli. Rakamları tek tek yazan yaklaşım
 (`pressSequentially`) maskenin imleç konumlandırmasıyla yarıştı ve paralel
-koşumda haneler karıştı (`5551234567` yerine `5551234657` yazıldı, giriş
-başarısız oldu). Çözüm: değeri tek işlemde yazmak (`fill`) ve tıklamadan önce
+koşumda haneler karıştı (örneğin `5551234567` yerine `5551234657` yazıldı ve
+giriş başarısız oldu). Çözüm: değeri tek işlemde yazmak (`fill`) ve tıklamadan önce
 alandaki değerin gerçekten yerleştiğini `expect.poll` ile doğrulamak
 (`pages/LoginPage.js`). Böylece form hazır olmadan submit edilmiyor.
 
