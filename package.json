@@ -1,0 +1,36 @@
+{
+  "name": "ebebek-web-automation",
+  "version": "1.0.0",
+  "description": "e-bebek uctan uca web test otomasyonu (Playwright + Cucumber + Allure)",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "cucumber-js",
+    "test:parallel": "cucumber-js -p parallel",
+    "test:smoke": "cucumber-js --tags @smoke",
+    "test:regression": "cucumber-js --tags @regression",
+    "test:negative": "cucumber-js --tags @negative",
+    "report:generate": "allure generate allure-results --clean -o allure-report",
+    "report:open": "allure open allure-report",
+    "report": "npm run report:generate && npm run report:open",
+    "clean": "rimraf allure-results allure-report reports/screenshots reports/traces"
+  },
+  "keywords": [
+    "playwright",
+    "cucumber",
+    "allure",
+    "e2e",
+    "qa-automation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@cucumber/cucumber": "^11.2.0",
+    "@playwright/test": "^1.49.1",
+    "allure-cucumberjs": "^3.0.9",
+    "dotenv": "^16.4.7",
+    "rimraf": "^6.0.1"
+  }
+}
