@@ -1,0 +1,116 @@
+const { BasePage } = require('./BasePage');
+const locators = require('./locators');
+const { parsePrice } = require('../utils/price');
+
+// Sepet satirlarinda fiyat iki bicimde gorunuyor:
+//  - indirimli urun: .old-price (liste fiyati uzerinden satir toplami) + .product-price-discount
+//  - indirimsiz urun: .product-price
+// "Urunler Toplami" ozet satiri liste fiyatlari uzerinden hesaplandigi icin
+// dogrulamada satir basina liste tutarini kullaniyoruz.
+class CartPage extends BasePage {
+  constructor(page) {
+    super(page);
+    this.lineItems = this.locator(locators.cart.lineItem);
+  }
+
+  async open() {
+    await this.goto('/cart');
+  }
+
+  async lineCount() {
+    return this.lineItems.count();
+  }
+
+  async waitForLineCount(expected) {
+    await this.page.waitForFunction(
+      ({ selector, count }) => document.querySelectorAll(selector).length === count,
+      { selector: locators.cart.lineItem, count: expected },
+      { timeout: 20000 },
+    );
+  }
+
+  lineByIndex(index) {
+    return this.lineItems.nth(index);
+  }
+
+  lineByTitle(title) {
+    return this.lineItems.filter({ hasText: title }).first();
+  }
+
+  async titles() {
+    const count = await this.lineCount();
+    const result = [];
+    for (let i = 0; i < count; i += 1) {
+      const text = await this.lineByIndex(i).locator(locators.cart.lineTitle).innerText();
+      result.push(text.trim());
+    }
+    return result;
+  }
+
+  async quantityOf(index) {
+    const text = await this.lineByIndex(index).locator(locators.cart.quantityText).innerText();
+    return Number(text.trim());
+  }
+
+  async lineTotal(index) {
+    const line = this.lineByIndex(index);
+    const oldPrice = line.locator(locators.cart.priceOld);
+    if (await oldPrice.count()) {
+      return parsePrice(await oldPrice.first().innerText());
+    }
+    return parsePrice(await line.locator(locators.cart.priceRegular).first().innerText());
+  }
+
+  async increaseQuantity(index) {
+    const line = this.lineByIndex(index);
+    const before = await this.quantityOf(index);
+    await line.locator(locators.cart.increaseButton).click();
+    // Adet guncellemesi asenkron; DOM'daki deger degisene kadar bekliyoruz.
+    await this.page.waitForFunction(
+      ({ selector, quantitySelector, idx, previous }) => {
+        const item = document.querySelectorAll(selector)[idx];
+        if (!item) return false;
+        const text = item.querySelector(quantitySelector)?.innerText?.trim();
+        return text !== undefined && Number(text) > previous;
+      },
+      {
+        selector: locators.cart.lineItem,
+        quantitySelector: locators.cart.quantityText,
+        idx: index,
+        previous: before,
+      },
+      { timeout: 20000 },
+    );
+    return before + 1;
+  }
+
+  // Silme islemi once bir onay modali aciyor; silme ancak modaldeki
+  // "Sil" butonuna basildiginda gerceklesiyor.
+  async removeLine(index) {
+    const before = await this.lineCount();
+    await this.lineByIndex(index).locator(locators.cart.removeButton).click();
+
+    const confirmButton = this.locator(locators.cart.removeConfirmButton);
+    await confirmButton.first().waitFor({ state: 'visible' });
+    await confirmButton.first().click();
+
+    await this.waitForLineCount(before - 1);
+  }
+
+  async subtotal() {
+    const row = this.locator(locators.cart.summaryItem).filter({ hasText: 'Ürünler Toplamı' }).first();
+    await row.waitFor({ state: 'visible' });
+    return parsePrice(await row.innerText());
+  }
+
+  async sumOfLineTotals() {
+    const count = await this.lineCount();
+    let total = 0;
+    for (let i = 0; i < count; i += 1) {
+      total += await this.lineTotal(i);
+    }
+    return total;
+  }
+}
+
+module.exports = { CartPage };
