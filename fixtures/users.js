@@ -16,6 +16,9 @@ const users = {
   'eksik haneli telefon': {
     phone: '555123',
   },
+  'boş telefon': {
+    phone: '',
+  },
 };
 
 module.exports = { users };

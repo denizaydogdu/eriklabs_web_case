@@ -10,14 +10,10 @@
     Ve kullanıcının misafir durumunda olduğu doğrulanır
 
     Örnekler:
-      | kullanıcı             | hata mesajı                                                |
-      | hatalı şifre          | Kullanıcı adı veya parolanız hatalıdır                     |
-      | eksik haneli telefon  | Lütfen 10 haneli olan geçerli bir telefon numarası giriniz |
-
-  Senaryo: Boş telefon alanı ile giriş denemesi engellenir
-    Diyelim ki "giriş" sayfasına gidilir
-    Eğer ki "giriş yap butonu" elementine tıklanır
-    O zaman "Lütfen 10 haneli olan geçerli bir telefon numarası giriniz" metninin görünür olduğu kontrol edilir
+      | kullanıcı            | hata mesajı                                                |
+      | hatalı şifre         | Kullanıcı adı veya parolanız hatalıdır                     |
+      | eksik haneli telefon | Lütfen 10 haneli olan geçerli bir telefon numarası giriniz |
+      | boş telefon          | Lütfen 10 haneli olan geçerli bir telefon numarası giriniz |
 
   # Site, kayıtlı olmayan bir e-posta için hata mesajı göstermek yerine kayıt
   # formunu açıyor. Doğrulama bu gerçek davranışa göre yazıldı: giriş verilmiyor.
