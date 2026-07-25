@@ -96,10 +96,30 @@ docker run --rm --env-file .env -v "$PWD/allure-results:/app/allure-results" ebe
 | `features/cart_persistence.feature` | Misafir sepetinin giriş sonrasında korunması | `@cart @auth @regression` |
 | `features/logout.feature` | Çıkış sonrası oturumun gerçekten sonlanması (oturum API üzerinden hazırlanır) | `@auth @regression` |
 
+### Konsol çıktısı
+
+Koşum, her senaryoyu bittiği anda adı, etiketleri ve süresiyle yazar; hata olursa
+hangi adımda ne patladığı sonda toplu olarak listelenir:
+
+```
+✓ Adet güncelleme ve ürün silme sonrası ara toplam doğru hesaplanır @cart @regression (27.6s)
+✓ Hatalı bilgilerle giriş denemesi engellenir → "boş telefon" kullanıcısı ile giriş denenir @auth @negative (8.1s)
+✓ Çıkış sonrası oturum gerçekten sonlanır @auth @regression (20.6s)
+
+11 senaryo — 11 senaryonun tamamı geçti
+```
+
+Cucumber'ın hazır konsol formatter'ları ya adım başına nokta basıyor ya da
+"3/5 steps" ilerleme çubuğu gösteriyor; ikisi de hangi senaryonun koştuğunu
+söylemiyor. `reporters/readable-formatter.js` bunun yerine senaryo bazlı yazıyor.
+Aynı isimli Scenario Outline satırları ilk adımlarıyla ayırt ediliyor. Renkler
+yalnızca gerçek terminalde kullanılıyor, CI logunda kapalı.
+
 ## Proje yapısı
 
 ```
 config/           ortam değişkenleri ve doğrulaması
+reporters/        cucumber konsol formatter'ı
 fixtures/         test kullanıcıları ve test verisi
 pages/            page object'ler + locators.js (tüm selector'lar burada)
 utils/            fiyat parse, bekleme ve locator yardımcıları

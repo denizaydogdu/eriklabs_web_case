@@ -5,7 +5,7 @@
 // progress, and the report is still written to allure-results.
 const common = {
   require: ['features/support/**/*.js', 'features/step_definitions/**/*.js'],
-  format: ['allure-cucumberjs/reporter:reports/allure-stream.log', 'progress'],
+  format: ['allure-cucumberjs/reporter:reports/allure-stream.log', './reporters/readable-formatter.js'],
   formatOptions: {
     resultsDir: 'allure-results',
     snippetInterface: 'async-await',
