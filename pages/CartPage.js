@@ -1,4 +1,4 @@
-const { expect } = require('@playwright/test');
+const { expect } = require('../utils/expect');
 const { BasePage } = require('./BasePage');
 const locators = require('./locators');
 const { parsePrice } = require('../utils/price');
@@ -88,16 +88,32 @@ class CartPage extends BasePage {
   }
 
   // Removing a line opens a confirmation modal first; nothing is deleted until
-  // its "Sil" button is clicked.
+  // its "Sil" button is clicked. As with adding to the cart, the bin icon can be
+  // clicked before Angular is listening, and then nothing happens at all -- so
+  // the modal showing up is what the click waits on, and the click is repeated
+  // if it doesn't.
   async removeLine(index) {
     const before = await this.lineCount();
-    await this.lineByIndex(index).locator(locators.cart.removeButton).click();
-
+    const removeIcon = this.lineByIndex(index).locator(locators.cart.removeButton);
     const confirmButton = this.locator(locators.cart.removeConfirmButton);
-    await confirmButton.first().waitFor({ state: 'visible' });
-    await confirmButton.first().click();
 
-    await this.waitForLineCount(before - 1);
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      await removeIcon.click();
+
+      const opened = await confirmButton
+        .first()
+        .waitFor({ state: 'visible', timeout: 6000 })
+        .then(() => true)
+        .catch(() => false);
+
+      if (opened) {
+        await confirmButton.first().click();
+        await this.waitForLineCount(before - 1);
+        return;
+      }
+    }
+
+    throw new Error('Sepetten silme onay penceresi açılmadı');
   }
 
   async subtotal() {

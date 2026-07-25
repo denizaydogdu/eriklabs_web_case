@@ -1,5 +1,5 @@
 const { When, Then } = require('@cucumber/cucumber');
-const { expect } = require('@playwright/test');
+const { expect } = require('../../utils/expect');
 const { searchTerms } = require('../../fixtures/testdata');
 
 When('{string} terimi aratılır', async function (term) {

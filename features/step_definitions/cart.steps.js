@@ -1,5 +1,5 @@
 const { Given, When, Then } = require('@cucumber/cucumber');
-const { expect } = require('@playwright/test');
+const { expect } = require('../../utils/expect');
 const { cartCategory } = require('../../fixtures/testdata');
 const { priceEquals } = require('../../utils/price');
 

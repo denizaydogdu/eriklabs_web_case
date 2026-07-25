@@ -13,6 +13,7 @@ function required(name) {
 
 const config = {
   baseUrl: process.env.BASE_URL || 'https://www.e-bebek.com',
+  apiUrl: process.env.API_URL || 'https://api2.e-bebek.com',
   headless: process.env.HEADLESS !== 'false',
   slowMo: Number(process.env.SLOW_MO || 0),
   // Kayit maliyetli oldugu icin varsayilan olarak kapali; hata ayiklarken veya

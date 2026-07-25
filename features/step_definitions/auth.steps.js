@@ -1,10 +1,18 @@
 const { Given, When, Then } = require('@cucumber/cucumber');
-const { expect } = require('@playwright/test');
+const { expect } = require('../../utils/expect');
 const { config } = require('../../config/config');
 const { users } = require('../../fixtures/users');
+const { fetchAccessToken } = require('../../utils/api-auth');
 
 Given('geçerli kullanıcı bilgileri ile giriş yapılır', async function () {
   await this.pages.login.login(config.credentials);
+});
+
+// Oturumun kendisi test edilmediginde giris formunu bastan sona surmek yerine
+// token API'den alinip context'e yaziliyor; iki adimli form atlaniyor.
+Given('oturum API üzerinden açılır', async function () {
+  const token = await fetchAccessToken(config.credentials);
+  await this.injectSession(token);
 });
 
 When('{string} kullanıcısı ile giriş denenir', async function (userKey) {

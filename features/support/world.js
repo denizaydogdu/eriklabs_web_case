@@ -7,6 +7,7 @@ const { SearchResultsPage } = require('../../pages/SearchResultsPage');
 const { ProductPage } = require('../../pages/ProductPage');
 const { CartPage } = require('../../pages/CartPage');
 const { AccountPage } = require('../../pages/AccountPage');
+const { AUTH_STORAGE_KEY, sessionStorageValue } = require('../../utils/api-auth');
 
 setDefaultTimeout(config.defaultTimeout * 3);
 
@@ -49,6 +50,19 @@ class EbebekWorld extends World {
       cart: new CartPage(this.page),
       account: new AccountPage(this.page),
     };
+  }
+
+  // Writes the session Spartacus expects into localStorage and reloads so the app
+  // picks it up. Deliberately a one-off write rather than an init script: an init
+  // script would re-inject the token on every navigation, and the logout scenario
+  // could never get back to a guest state.
+  async injectSession(token) {
+    await this.pages.home.open();
+    await this.page.evaluate(
+      ([key, value]) => window.localStorage.setItem(key, value),
+      [AUTH_STORAGE_KEY, sessionStorageValue(token)],
+    );
+    await this.page.reload({ waitUntil: 'domcontentloaded' });
   }
 
   // A context that refuses to close should be reported, not turned into a failed
