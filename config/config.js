@@ -16,9 +16,11 @@ const config = {
   apiUrl: process.env.API_URL || 'https://api2.e-bebek.com',
   headless: process.env.HEADLESS !== 'false',
   slowMo: Number(process.env.SLOW_MO || 0),
-  // Kayit maliyetli oldugu icin varsayilan olarak kapali; hata ayiklarken veya
-  // demo icin VIDEO=true ile acilir.
-  video: process.env.VIDEO === 'true',
+  // Kayit maliyetli oldugu icin varsayilan olarak kapali. VIDEO=true yalnizca
+  // basarisiz senaryolarin kaydini saklar; VIDEO=all demo/hata ayiklama icin
+  // hepsini birakir.
+  video: process.env.VIDEO === 'true' || process.env.VIDEO === 'all',
+  keepAllVideos: process.env.VIDEO === 'all',
   defaultTimeout: Number(process.env.DEFAULT_TIMEOUT || 20000),
   navigationTimeout: Number(process.env.NAV_TIMEOUT || 45000),
   locale: process.env.LOCALE || 'tr-TR',

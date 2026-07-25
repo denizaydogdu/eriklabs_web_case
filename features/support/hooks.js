@@ -12,6 +12,7 @@ let browser;
 
 const resultsDir = path.resolve(__dirname, '..', '..', 'allure-results');
 const tracesDir = path.resolve(__dirname, '..', '..', 'reports', 'traces');
+const videosDir = path.resolve(__dirname, '..', '..', 'reports', 'videos');
 
 BeforeAll(async function () {
   browser = await chromium.launch({ headless: config.headless, slowMo: config.slowMo });
@@ -77,6 +78,12 @@ After(async function ({ pickle, result }) {
           mediaType: ContentType.WEBM,
           fileName: 'Koşum kaydı.webm',
         });
+      }
+      // Playwright names recordings by an internal hash. When they are kept on
+      // purpose (demo, debugging) they are renamed after the scenario so the
+      // folder can actually be navigated.
+      if (config.keepAllVideos) {
+        await video.saveAs(path.join(videosDir, `${traceName(pickle)}.webm`));
       }
       await video.delete();
     } catch (error) {

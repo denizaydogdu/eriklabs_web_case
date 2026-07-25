@@ -60,6 +60,7 @@ Video kaydı isteğe bağlıdır ve maliyeti nedeniyle varsayılan olarak kapal�
 
 ```bash
 VIDEO=true npm test        # yalnızca başarısız senaryoların kaydı rapora eklenir
+VIDEO=all npm test         # her senaryonun kaydı senaryo adıyla saklanır (demo/hata ayıklama)
 HEADLESS=false SLOW_MO=250 npx cucumber-js -p serial features/cart.feature   # akışı tarayıcıda izlemek için
 ```
 
@@ -184,7 +185,16 @@ formu gibi) doğrulayan adımlar, sayfa hâlâ çalışırken aralıklı olarak 
 Çözüm: `utils/expect.js` içinde aksiyonlarla aynı süreyi kullanan ortak bir
 `expect` tanımlamak.
 
-**5. Tıklamayı engelleyen overlay'ler.**
+**5. Arama sonuçlarının yönlendirme sırasında okunması.**
+Sonuç dönen bir arama, ilgili kategori sayfasına yönlendiriliyor ve yönlendirme
+tamamlanana kadar ekranda hâlâ ayrılmakta olan sayfanın ürünleri duruyor. Listeyi
+tek seferde okumak, bu ara durumda ilgisiz ürünleri yakalayıp senaryoyu hatalı
+yere kırıyordu. Çözüm: ilişki oranını hedef sayfa yerine oturana kadar yeniden
+okumak (`features/step_definitions/search.steps.js`). Karşılığı olmayan arama
+senaryosunda ise tersi geçerli: geçici bir ara durum "ilişkisiz" sanılmasın diye
+liste sabitlendikten sonra tek okuma yapılıyor.
+
+**6. Tıklamayı engelleyen overlay'ler.**
 Çerez banner'ı sayfaya gecikmeli düşüyor, sepete ekleme sonrası sağdan açılan modal
 tıklamaları engelliyor (`ngb-modal-window intercepts pointer events`). Çözüm:
 `utils/waits.js` içindeki `dismissIfVisible` — element kısa sürede görünürse
