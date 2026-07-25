@@ -1,0 +1,92 @@
+name: Tests
+
+# Birim testler her push'ta kosar; tarayici gerektirmezler ve saniyeler surer.
+# Uctan uca testler canli siteye baglidir ve giris denemeleri site tarafinda
+# sayildigi icin her commit'te degil, elle veya gecelik tetiklenir.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Cucumber tag ifadesi (bos birakilirsa tum senaryolar)'
+        required: false
+        default: ''
+
+jobs:
+  unit:
+    name: Birim testler
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm ci
+      - run: npm run test:unit
+
+  e2e:
+    name: Uçtan uca testler
+    runs-on: ubuntu-latest
+    # Push ve pull_request tetiklemelerinde atlanir: canli siteye karsi kosuyor.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      # Allure raporu Java gerektiriyor.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - run: npm ci
+
+      - name: Tarayiciyi kur
+        run: npx playwright install --with-deps chromium
+
+      - name: Testleri kos
+        env:
+          BASE_URL: ${{ vars.BASE_URL || 'https://www.e-bebek.com' }}
+          EBEBEK_PHONE: ${{ secrets.EBEBEK_PHONE }}
+          EBEBEK_PASSWORD: ${{ secrets.EBEBEK_PASSWORD }}
+          HEADLESS: 'true'
+          WORKERS: '2'
+          VIDEO: 'true'
+        run: |
+          if [ -n "${{ github.event.inputs.tags }}" ]; then
+            npx cucumber-js --tags "${{ github.event.inputs.tags }}"
+          else
+            npm test
+          fi
+
+      # Testler kirilsa da rapor uretilip yuklenmeli: hata ayiklama icin
+      # ekran goruntusu, trace ve video raporun icinde.
+      - name: Allure raporunu uret
+        if: always()
+        run: npm run report:generate
+
+      - name: Allure raporunu yukle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
+          retention-days: 14
+
+      - name: Ham sonuclari yukle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results
+          retention-days: 7
