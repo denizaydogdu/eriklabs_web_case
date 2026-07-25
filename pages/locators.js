@@ -29,6 +29,9 @@ module.exports = {
     passwordInput: '#txtPassword',
     emailInput: '#txtEmail',
     submitButton: { role: 'button', name: /giriş yap/i },
+    // Kayitli olmayan bir e-posta girildiginde site hata vermek yerine kayit
+    // formunu aciyor; bu alanin gorunmesi girisin verilmedigini kanitliyor.
+    registerFirstNameInput: '#txtFirstNameRegister',
   },
 
   search: {

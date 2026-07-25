@@ -15,6 +15,7 @@ const elements = {
   'e-posta alanı': locators.login.emailInput,
   'e-posta sekmesi': locators.login.emailTab,
   'giriş yap butonu': locators.login.submitButton,
+  'kayıt ad alanı': locators.login.registerFirstNameInput,
 
   'sepete ekle butonu': locators.product.addToCartButton,
   'ürün başlığı': locators.product.title,

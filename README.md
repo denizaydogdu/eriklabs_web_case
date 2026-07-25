@@ -89,7 +89,7 @@ docker run --rm --env-file .env -v "$PWD/allure-results:/app/allure-results" ebe
 | Dosya | Kapsam | Etiketler |
 |---|---|---|
 | `features/login.feature` | Geçerli bilgilerle giriş ve hesap menüsündeki kullanıcıya özgü linklerin doğrulanması | `@auth @smoke` |
-| `features/login_negative.feature` | Hatalı şifre, eksik haneli telefon, boş alan, geçersiz e-posta formatı (Scenario Outline + Examples) | `@auth @negative @regression` |
+| `features/login_negative.feature` | Hatalı şifre, eksik haneli telefon (Scenario Outline + Examples), boş alan, kayıtlı olmayan e-posta, geçersiz e-posta formatı | `@auth @negative @regression` |
 | `features/search.feature` | Sonuç dönen ve karşılığı olmayan arama | `@search @smoke @regression` |
 | `features/cart.feature` | İki ürün ekleme, adet artırma, ürün silme, ara toplamın sayısal doğrulanması | `@cart @regression` |
 | `features/cart_persistence.feature` | Misafir sepetinin giriş sonrasında korunması | `@cart @auth @regression` |
@@ -221,9 +221,10 @@ Senaryolar sitenin gerçek davranışı incelenerek tasarlandı. Tasarımı etki
 noktalar:
 
 - **Giriş, e-posta/şifre değil telefon + şifre ile iki adımlı ilerliyor.** Telefon
-  doğrulandıktan sonra aynı ekranda şifre alanı açılıyor. E-posta sekmesi mevcut,
-  ancak kayıtlı olmayan bir e-posta girildiğinde hata yerine kayıt formu açılıyor;
-  bu yüzden e-posta sekmesi yalnızca format doğrulaması senaryosunda kullanıldı.
+  doğrulandıktan sonra aynı ekranda şifre alanı açılıyor.
+- **Kayıtlı olmayan e-posta hata mesajı üretmiyor;** site doğrudan kayıt formunu
+  açıyor. İlgili negatif senaryo bu gerçek davranışı doğruluyor: kayıt formu
+  görünür oluyor ve kullanıcı misafir olarak kalıyor.
 - **Arama hiçbir zaman boş sonuç döndürmüyor.** Anlamsız bir terimde bile
   ("qxzjvbkwmfpldnhtsr") site "665 Adet ürün bulundu" diyerek ilgisiz ürünler
   listeliyor; "sonuç bulunamadı" gibi bir mesaj yok. Bu nedenle "sonuç dönmeyen
