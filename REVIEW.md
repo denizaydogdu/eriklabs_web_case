@@ -1,7 +1,7 @@
 # Kod Değerlendirme Notları
 
-Projenin kendi gözden geçirmesi. Bilinçli verilen tavizler, tespit edilen
-zayıflıklar ve bir sonraki adımda yapılması gerekenler.
+Projenin kendi gözden geçirmesi: bilinçli verilen tavizler, inceleme sırasında
+bulunup düzeltilen hatalar ve hâlâ açık olan zayıflıklar.
 
 ## Bilinçli tasarım kararları
 
@@ -14,51 +14,89 @@ ama fiyat değişiminden etkilenmez.
 
 **Ürünler dinamik seçiliyor.**
 Sabit SKU kullanılsaydı ürün stoktan kalktığında senaryo kırılırdı. Kategori
-listesinden ilk iki farklı ürün seçiliyor. Tavizi: ürünlerin hangi ürün olduğu
-koşuma göre değişiyor, bu da hata ayıklamayı bir miktar zorlaştırıyor. Bu yüzden
-seçilen ürün adları `this.state` içinde tutuluyor ve doğrulama mesajlarında
-kullanılıyor.
+listesinden farklı iki ürün seçiliyor. Tavizi: hangi ürünle koşulduğu değişiyor,
+bu da hata ayıklamayı bir miktar zorlaştırıyor. Bu yüzden seçilen ürün adları
+`this.state` içinde tutuluyor ve doğrulama mesajlarında kullanılıyor.
 
 **Aynı iş için mükerrer step yazılmadı.**
-Örneğin "hesap menüsünün üzerine gelinir" adımı generic hover step'i ile
-karşılanıyor; giriş/çıkış gibi alan bilgisi gerektiren akışlar için ayrı step
-yazıldı. Generic step'lerle karşılanabilecek bir işi tekrar tanımlamamaya
-dikkat edildi.
+Örneğin çıkış senaryosundaki "oturum gerektiren sayfaya erişim engelli mi"
+kontrolü, kendi adımını yazmak yerine hazır `sayfasına gidilir` +
+`adres satırının ... ile başladığı kontrol edilir` adımlarıyla kuruldu.
 
-## Tespit edilen zayıflıklar
+## İncelemede bulunan ve düzeltilen hatalar
+
+Kod tamamlandıktan sonra yapılan gözden geçirmede çıkanlar. Hepsi düzeltildi;
+buraya not düşülmesinin sebebi bulguların niteliğini göstermek.
+
+**Fiyat metninden yanlış sayı okunabiliyordu.**
+`subtotal()` özet satırının tamamını metin olarak okuyup ilk sayıyı fiyat kabul
+ediyordu. Satır `Ürünler Toplamı (2 Ürün) 1.299,90 TL` biçiminde gelse tüm sepet
+doğrulaması `2` üzerinden çalışır, üstelik sessizce yanlış sonuç verirdi. Artık
+para birimi taşıyan tutar tercih ediliyor ve `utils/price.test.js` bu davranışı
+birim testle koruyor.
+
+**Sepete ekleme sessizce başarısız olabiliyordu.**
+"Sepete Ekle" butonu, Angular olay dinleyicisini bağlamadan çok önce görünür
+oluyor ve `disable` sınıfını hiç bırakmıyor; Playwright'ın "enabled" kontrolü de
+bunu yakalamıyor. Erken tıklama hiçbir şey yapmıyor, sepet boş kalıyor ve hata
+çok sonra "sepet boş" olarak ortaya çıkıyordu. Artık sitenin kendi onay penceresi
+eklemenin kanıtı sayılıyor ve gelmezse tıklama tekrarlanıyor.
+
+**Adet artışında sunucu onayı beklenmiyordu.**
+Sepette adet metni iyimser (optimistic) güncelleniyor: istek sunucuya ulaşmasa
+bile satır "2" gösteriyor, tutarlar ise tek ürünü anlatmaya devam ediyor. Bekleme
+koşulu adet metninden, sunucunun onayladığı özet değişimine taşındı.
+
+**`After` hook'unda context sızıntısı.**
+Ekran görüntüsü veya trace toplarken bir hata çıkarsa `closeBrowser()` hiç
+çalışmıyordu; sayfası çökmüş bir senaryo, worker'ın kalan koşumu boyunca açık
+context bırakıyordu. Artefakt toplama artık `try/finally` içinde.
+
+**Overlay kapatma, kapatmaya çalıştığı şey yüzünden testi düşürebiliyordu.**
+Çerez banner'ı görünür bulunup tıklanmadan önce kendiliğinden kaybolursa
+`click()` hata fırlatıyordu. Bu yardımcı tanımı gereği "varsa kapat" olduğundan
+tıklama da best-effort hale getirildi.
+
+**Assertion'ların söylediği ile yaptığı farklıydı.**
+`adres satırının "..." ile başladığı` adımı aslında `contains` kontrolü yapıyordu
+(`/foo/login-error`, `/login` beklentisini geçirirdi). "Metin görünmüyor" kontrolü
+ise yalnızca ilk eşleşmeye bakıyordu; aynı metnin görünür ikinci bir kopyası
+testi yanlışlıkla geçirebilirdi.
+
+**`waitForListToSettle` sayacı selector'dan bağımsızdı.**
+Sayaç `window` üzerinde tek anahtarla tutuluyordu; art arda iki liste beklemesi
+aynı sayıya denk gelirse ikinci bekleme anında "sabitlendi" diyebilirdi.
+
+**Allure raporu üretilmiyordu, üstelik sessizce.**
+cucumber-js aynı anda tek formatter'ı stdout'a bağlıyor ve fazlasını hata
+vermeden düşürüyor. İlk yapılandırmada düşen formatter Allure'du, dolayısıyla
+hiç sonuç yazılmıyordu. Allure'un kullanılmayan akış çıktısı bir dosyaya
+yönlendirildi; stdout koşum ilerlemesine kaldı.
+
+## Hâlâ açık olan zayıflıklar
 
 **1. Arama sonucu ilişki oranı eşiği (%70) deneysel.**
-`SearchResultsPage.relatedRatio` başlıklarda arama kelimelerini arıyor ve
-sonuç dönen aramada en az %70 eşiği bekliyor. Bu eşik gözlemle belirlendi;
-kategori sayfası farklı marka adlarıyla dolduğunda gereksiz yere kırılabilir.
-Daha sağlam yol: site arama API'sinden dönen sonuç sayısını da doğrulamak veya
-kategori kimliği üzerinden kontrol etmek.
+`SearchResultsPage.relatedRatio` başlıklarda arama kelimelerini arıyor ve sonuç
+dönen aramada en az %70 eşiği bekliyor. Bu eşik gözlemle belirlendi; kategori
+sayfası farklı marka adlarıyla dolduğunda gereksiz yere kırılabilir. Daha sağlam
+yol: arama sonucunun kategori kimliği üzerinden doğrulanması.
 
 **2. Negatif giriş senaryosu gerçek hesabı kullanıyor.**
-"Hatalı şifre" satırı gerçek hesaba tek bir yanlış deneme gönderiyor. Site
-deneme hakkını sayıyor; senaryo çok sık koşulursa (örneğin CI'da her commit'te)
-hesap kilitlenebilir. Daha doğru çözüm: bu senaryo için ayrı bir teknik hesap
-kullanmak veya girişi API seviyesinde taklit etmek.
+"Hatalı şifre" satırı gerçek hesaba tek bir yanlış deneme gönderiyor. Site deneme
+hakkını sayıyor; senaryo çok sık koşulursa (örneğin CI'da her commit'te) hesap
+kilitlenebilir. Doğrusu bu senaryo için ayrı bir teknik hesap kullanmak olurdu.
 
-**3. Trace her senaryoda toplanıyor.**
-`context.tracing.start` her senaryoda çalışıyor, başarılı senaryolarda dosya
-siliniyor. Bu, hata anında trace'in kesin olarak elde edilmesini sağlıyor ancak
-koşum süresine ölçülebilir bir maliyet ekliyor. Alternatif olarak yalnızca
-tekrar denemede trace toplayan bir yapı kurulabilirdi.
+**3. Sepete ekleme tekrarının çift ekleme riski.**
+Tıklama, onay penceresi gelmezse tekrarlanıyor. Tıklama aslında işlediyse ve
+pencere geç açıldıysa ürün iki kez eklenmiş olur. Pencere için tanınan süre
+(8 sn) gözlenen açılma süresinin (1-3 sn) belirgin üzerinde tutularak risk
+küçültüldü; kesin çözüm, sepet içeriğini API üzerinden doğrulamak olurdu.
 
-**4. `waitForListToSettle` içinde `window` üzerinde sayaç tutuluyor.**
-Sayfa üzerinde `window.__ebSettleCount` değişkeni kullanılıyor. Aynı sayfada
-farklı listeler için art arda çağrılırsa sayaç çakışabilir. Şu an tek listede
-kullanıldığı için sorun çıkarmıyor; genel bir yardımcıya dönüşecekse selector
-bazlı anahtar kullanılmalı.
+**4. Trace her senaryoda toplanıyor.**
+Başarılı senaryolarda dosya siliniyor, ancak toplama maliyeti koşum süresine
+yansıyor. Alternatif olarak yalnızca tekrar denemede trace toplanabilirdi.
 
-**5. Allure formatter yapılandırması kırılgan bir davranışa bağlı.**
-cucumber-js aynı anda tek bir formatter'ı stdout'a bağlıyor; birden fazla
-verildiğinde diğerleri sessizce devre dışı kalıyor ve Allure sonuçları hiç
-üretilmiyor (hata da vermiyor). Bu davranış `cucumber.js` içinde yorumla
-belgelendi, ancak sürüm yükseltmelerinde tekrar kontrol edilmesi gereken bir nokta.
-
-**6. Sepet satırı seçimi indekse dayalı.**
+**5. Sepet satırı seçimi indekse dayalı.**
 `1. ürünün adedi bir artırılır` gibi adımlar satır sırasını kullanıyor. Sepet
 sıralaması değişirse yanlış satır üzerinde işlem yapılabilir. Adımların ürün
 adıyla çalışacak biçimde genişletilmesi daha sağlam olurdu.
@@ -71,5 +109,5 @@ adıyla çalışacak biçimde genişletilmesi daha sağlam olurdu.
 - **CI pipeline (B2):** Zaman kısıtı nedeniyle eklenmedi. Proje headless
   koşacak biçimde yapılandırıldığı için pipeline eklemek doğrudan mümkün.
 - **Docker imajının koşum doğrulaması:** `Dockerfile` yazıldı ve temel alınan
-  Playwright imajının sürümü projeyle hizalandı, ancak imaj build edilip
-  içinde tam senaryo seti koşturulmadı.
+  Playwright imajının sürümü projeyle hizalandı (bu yüzden Playwright sürümü
+  sabit), ancak imaj build edilip içinde tam senaryo seti koşturulmadı.

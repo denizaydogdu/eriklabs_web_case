@@ -1,9 +1,11 @@
-// cucumber-js only wires one formatter to stdout. Give it more than one and the
-// others are silently dropped -- which meant no Allure results at all, with no
-// error to explain it. So Allure keeps stdout and the summary goes to a file.
+// cucumber-js only wires one formatter to stdout, and a second one asking for it
+// is dropped without a word -- which is how the Allure reporter ended up writing
+// no results at all, with no error to explain it. Pointing Allure's (unused)
+// stream output at a file settles the conflict: stdout stays free for the run
+// progress, and the report is still written to allure-results.
 const common = {
   require: ['features/support/**/*.js', 'features/step_definitions/**/*.js'],
-  format: ['allure-cucumberjs/reporter', 'summary:reports/summary.txt'],
+  format: ['allure-cucumberjs/reporter:reports/allure-stream.log', 'progress'],
   formatOptions: {
     resultsDir: 'allure-results',
     snippetInterface: 'async-await',
