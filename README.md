@@ -142,7 +142,7 @@ Testlerde sabit bekleme yok; Playwright'ın otomatik beklemesi, `expect(locator)
 `expect.poll` tabanlı koşullu beklemeler ile `utils/waits.js` içindeki yardımcılar
 kullanılıyor.
 
-Geliştirme sırasında karşılaşılan ve çözülen üç kararsızlık:
+Koşumlarda karşılaşılan kararsızlıklar ve çözümleri:
 
 **1. Maskeli telefon alanında karışan haneler.**
 Giriş formundaki telefon alanı maskeli. Rakamları tek tek yazan yaklaşım
@@ -151,18 +151,28 @@ haneler yer değiştirdi (örneğin `5551234567` yerine `5551234657`) ve giriş
 başarısız oldu. Çözüm: değeri tek işlemde yazmak (`fill`) ve tıklamadan önce
 değerin forma işlendiğini `expect.poll` ile doğrulamak (`pages/LoginPage.js`).
 
-**2. Sepet özetinin gecikmeli hesaplanması.**
-Adet artırıldığında satırdaki adet anında güncelleniyor, ancak "Ürünler Toplamı"
-ayrı bir istekle yeniden hesaplanıyor. Tek seferlik okuma eski tutarı yakalayıp
-testi hatalı yere kırıyordu. Çözüm: tutarı beklenen değere ulaşana kadar yeniden
-okuyan `expectSubtotal` yardımcısı (`features/step_definitions/cart.steps.js`).
-Zaman aşımında son okunan değer hata mesajına yazılıyor, böylece hata ayıklamak kolay.
+**2. Sepete ekleme sessizce başarısız olabiliyor.**
+"Sepete Ekle" butonu, Angular olay dinleyicisini bağlamadan çok önce görünür
+oluyor. Üstelik `disable` sınıfını hiç bırakmıyor, Playwright'ın "enabled"
+kontrolü de bunu görmüyor: erken tıklama hiçbir şey yapmıyor, hata da vermiyor.
+Sonuç birkaç adım sonra "sepet boş" olarak ortaya çıkıyordu. Çözüm: sitenin kendi
+onay penceresini eklemenin kanıtı saymak ve gelmezse tıklamayı tekrarlamak
+(`pages/ProductPage.js`).
 
-**3. Tıklamayı engelleyen overlay'ler.**
+**3. Adet artışında sunucu onayının beklenmemesi.**
+Sepette adet metni iyimser güncelleniyor: istek sunucuya ulaşmasa bile satır "2"
+gösteriyor, tutarlar ise hâlâ tek ürünü anlatıyor. Adet metnini kanıt saymak,
+ara toplamın 20 saniye boyunca eski değerde kaldığı bir hataya yol açtı. Çözüm:
+beklemeyi adetten, sunucunun onayladığı özet değişimine taşımak
+(`pages/CartPage.js`). Ara toplam okumaları ayrıca beklenen değere ulaşana kadar
+yeniden okunuyor ve zaman aşımında son okunan değer hata mesajına yazılıyor.
+
+**4. Tıklamayı engelleyen overlay'ler.**
 Çerez banner'ı sayfaya gecikmeli düşüyor, sepete ekleme sonrası sağdan açılan modal
 tıklamaları engelliyor (`ngb-modal-window intercepts pointer events`). Çözüm:
 `utils/waits.js` içindeki `dismissIfVisible` — element kısa sürede görünürse
-kapatılıyor, görünmezse beklenmeden devam ediliyor. Sepetten ürün silme ayrı bir
+kapatılıyor, görünmezse beklenmeden devam ediliyor. Banner'ın kendiliğinden
+kapanma ihtimaline karşı tıklama da best-effort. Sepetten ürün silme ayrı bir
 onay modalı açtığı için silme akışı bu onayı da kapsıyor (`pages/CartPage.js`).
 
 ## Sepet toplamı doğrulaması
