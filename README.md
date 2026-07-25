@@ -41,6 +41,7 @@ npx cucumber-js -p serial   # tek process, hata ayıklarken
 npm run test:smoke          # @smoke
 npm run test:regression     # @regression
 npm run test:negative       # @negative
+npm run test:unit           # fiyat parse yardımcılarının birim testleri (tarayıcı gerekmez)
 ```
 
 Tarayıcıyı görerek koşmak için `.env` içinde `HEADLESS=false`.
@@ -178,6 +179,10 @@ Sepet satırlarında fiyat iki biçimde görünüyor: indirimli üründe `.old-p
 (liste fiyatı üzerinden satır tutarı) ve `.product-price-discount`, indirimsiz
 üründe `.product-price`. "Ürünler Toplamı" liste fiyatları üzerinden hesaplandığı
 için doğrulamada satır başına liste tutarı kullanılıyor.
+
+Fiyat metninin ayrıştırılması `utils/price.test.js` içindeki birim testlerle
+korunuyor (`npm run test:unit`): özet satırı tek parça metin olarak okunduğu için,
+etikette geçen bir sayının ("... (2 Ürün)") fiyat sanılması mümkündü.
 
 Kampanyalar ve fiyatlar canlı ortamda değiştiği için sabit tutar beklentisi yerine
 göreli (delta) doğrulama tercih edildi: hesaplama hatası yakalanır, fiyat değişimi

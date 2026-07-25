@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "cucumber-js",
+    "test:unit": "node --test utils/",
     "test:parallel": "cucumber-js -p parallel",
     "test:smoke": "cucumber-js --tags @smoke",
     "test:regression": "cucumber-js --tags @regression",
