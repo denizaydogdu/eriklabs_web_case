@@ -34,6 +34,9 @@ Before(async function () {
 // open and pile up for the rest of the worker's run.
 After(async function ({ pickle, result }) {
   const failed = result.status === Status.FAILED;
+  // The handle has to be taken before teardown: closeBrowser() drops the page,
+  // and the file itself is only written once the context is closed.
+  const video = config.video && this.page ? this.page.video() : null;
 
   try {
     if (failed && this.page) {
@@ -65,6 +68,20 @@ After(async function ({ pickle, result }) {
     console.warn(`Trace kaydedilemedi (${pickle.name}): ${error.message}`);
   } finally {
     await this.closeBrowser();
+  }
+
+  if (video) {
+    try {
+      if (failed) {
+        await this.attach(fs.readFileSync(await video.path()), {
+          mediaType: ContentType.WEBM,
+          fileName: 'Koşum kaydı.webm',
+        });
+      }
+      await video.delete();
+    } catch (error) {
+      console.warn(`Video kaydedilemedi (${pickle.name}): ${error.message}`);
+    }
   }
 });
 

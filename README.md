@@ -56,6 +56,16 @@ Raporda Gherkin adımları Allure adımı olarak, ortam bilgisi (`environment.pr
 ve etiketler yer alır. Hata durumunda ekran görüntüsü ve Playwright trace otomatik
 eklenir; trace, Allure'ın trace görüntüleyicisiyle açılır.
 
+Video kaydı isteğe bağlıdır ve maliyeti nedeniyle varsayılan olarak kapalıdır:
+
+```bash
+VIDEO=true npm test        # yalnızca başarısız senaryoların kaydı rapora eklenir
+HEADLESS=false SLOW_MO=250 npx cucumber-js -p serial features/cart.feature   # akışı tarayıcıda izlemek için
+```
+
+Kayıtlar `reports/videos/` altına düşer; geçen senaryolarınki koşum sonunda silinir.
+Bu klasör versiyon kontrolüne dahil değildir.
+
 10 senaryonun 2 worker ile koştuğu bir raporun genel görünümü:
 
 ![Allure raporu genel görünüm](docs/allure-report.png)

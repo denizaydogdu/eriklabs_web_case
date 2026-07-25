@@ -15,6 +15,9 @@ const config = {
   baseUrl: process.env.BASE_URL || 'https://www.e-bebek.com',
   headless: process.env.HEADLESS !== 'false',
   slowMo: Number(process.env.SLOW_MO || 0),
+  // Kayit maliyetli oldugu icin varsayilan olarak kapali; hata ayiklarken veya
+  // demo icin VIDEO=true ile acilir.
+  video: process.env.VIDEO === 'true',
   defaultTimeout: Number(process.env.DEFAULT_TIMEOUT || 20000),
   navigationTimeout: Number(process.env.NAV_TIMEOUT || 45000),
   locale: process.env.LOCALE || 'tr-TR',

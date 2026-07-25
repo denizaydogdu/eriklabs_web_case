@@ -1,3 +1,4 @@
+const path = require('path');
 const { setWorldConstructor, setDefaultTimeout, World } = require('@cucumber/cucumber');
 const { config } = require('../../config/config');
 const { HomePage } = require('../../pages/HomePage');
@@ -8,6 +9,8 @@ const { CartPage } = require('../../pages/CartPage');
 const { AccountPage } = require('../../pages/AccountPage');
 
 setDefaultTimeout(config.defaultTimeout * 3);
+
+const videosDir = path.resolve(__dirname, '..', '..', 'reports', 'videos');
 
 // Every scenario gets its own World instance, and its own browser context on
 // top of that, so cookies, session and cart never leak from one scenario into
@@ -24,9 +27,14 @@ class EbebekWorld extends World {
   }
 
   async openBrowser(browser) {
+    const viewport = { width: 1366, height: 900 };
     this.context = await browser.newContext({
       locale: config.locale,
-      viewport: { width: 1366, height: 900 },
+      viewport,
+      // Recording costs time and disk, so it is opt-in. Playwright only finalises
+      // the file when the context closes, which is why the After hook picks it up
+      // after teardown rather than during the scenario.
+      ...(config.video ? { recordVideo: { dir: videosDir, size: viewport } } : {}),
     });
     this.context.setDefaultTimeout(config.defaultTimeout);
     this.context.setDefaultNavigationTimeout(config.navigationTimeout);
