@@ -55,6 +55,14 @@ Raporda Gherkin adımları Allure adımı olarak, ortam bilgisi (`environment.pr
 ve etiketler yer alır. Hata durumunda ekran görüntüsü ve Playwright trace otomatik
 eklenir; trace, Allure'ın trace görüntüleyicisiyle açılır.
 
+10 senaryonun 2 worker ile koştuğu bir raporun genel görünümü:
+
+![Allure raporu genel görünüm](docs/allure-report.png)
+
+Senaryo detayında Gherkin adımları, etiketler ve adım süreleri:
+
+![Allure senaryo detayı](docs/allure-scenario.png)
+
 ### Docker
 
 ```bash

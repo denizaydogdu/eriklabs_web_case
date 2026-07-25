@@ -53,4 +53,4 @@ function resolvePage(name) {
   return path;
 }
 
-module.exports = { resolveElement, resolvePage, elements, pages };
+module.exports = { resolveElement, resolvePage };

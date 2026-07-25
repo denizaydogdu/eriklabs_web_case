@@ -43,9 +43,17 @@ class EbebekWorld extends World {
     };
   }
 
+  // A context that refuses to close should be reported, not turned into a failed
+  // scenario: the test itself has already finished by this point.
   async closeBrowser() {
-    if (this.context) {
+    if (!this.context) {
+      return;
+    }
+    try {
       await this.context.close();
+    } catch (error) {
+      console.warn(`Tarayıcı context'i kapatılamadı: ${error.message}`);
+    } finally {
       this.context = null;
       this.page = null;
     }

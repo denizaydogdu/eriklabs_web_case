@@ -4,16 +4,26 @@
 
 let counter = 0;
 
-// Clicks the element if it shows up, otherwise moves on quietly.
-// Used for overlays that may or may not be there.
+// Clicks the element if it shows up, otherwise moves on quietly. Used for
+// overlays that may or may not be there.
+//
+// The click is best-effort too: a banner can dismiss itself between the wait and
+// the click, and an overlay disappearing on its own is exactly the outcome we
+// wanted -- it must not fail the step that happened to trigger the check.
 async function dismissIfVisible(locator, timeout = 4000) {
+  const target = locator.first();
   try {
-    await locator.first().waitFor({ state: 'visible', timeout });
+    await target.waitFor({ state: 'visible', timeout });
   } catch {
     return false;
   }
-  await locator.first().click();
-  return true;
+
+  try {
+    await target.click({ timeout: 5000 });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // Waits until a lazy-loaded list stops growing: the condition is that the node

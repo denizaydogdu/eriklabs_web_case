@@ -1,3 +1,4 @@
+const { expect } = require('@playwright/test');
 const { BasePage } = require('./BasePage');
 const locators = require('./locators');
 const { parsePrice } = require('../utils/price');
@@ -57,27 +58,33 @@ class CartPage extends BasePage {
     return parsePrice(await line.locator(locators.cart.priceRegular).first().innerText());
   }
 
+  // The quantity text is updated optimistically: it flips to the new value before
+  // the server has confirmed anything, and a request that never lands leaves the
+  // line saying "2" while the totals still describe a cart of one. The summary
+  // changing is the server-confirmed signal, so that is what the wait is on.
   async increaseQuantity(index) {
     const line = this.lineByIndex(index);
     const before = await this.quantityOf(index);
+    const summaryBefore = await this.summaryText();
+
     await line.locator(locators.cart.increaseButton).click();
-    // The quantity update is async, so wait for the DOM value to actually change.
-    await this.page.waitForFunction(
-      ({ selector, quantitySelector, idx, previous }) => {
-        const item = document.querySelectorAll(selector)[idx];
-        if (!item) return false;
-        const text = item.querySelector(quantitySelector)?.innerText?.trim();
-        return text !== undefined && Number(text) > previous;
-      },
-      {
-        selector: locators.cart.lineItem,
-        quantitySelector: locators.cart.quantityText,
-        idx: index,
-        previous: before,
-      },
-      { timeout: 20000 },
-    );
+
+    await expect
+      .poll(
+        async () => {
+          const quantity = await this.quantityOf(index).catch(() => before);
+          const summary = await this.summaryText().catch(() => summaryBefore);
+          return quantity > before && summary !== summaryBefore;
+        },
+        { timeout: 25000 },
+      )
+      .toBe(true);
+
     return before + 1;
+  }
+
+  async summaryText() {
+    return this.locator(locators.cart.summaryItem).filter({ hasText: 'Ürünler Toplamı' }).first().innerText();
   }
 
   // Removing a line opens a confirmation modal first; nothing is deleted until
