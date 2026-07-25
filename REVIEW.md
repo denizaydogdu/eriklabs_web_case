@@ -57,6 +57,17 @@ context bırakıyordu. Artefakt toplama artık `try/finally` içinde.
 `click()` hata fırlatıyordu. Bu yardımcı tanımı gereği "varsa kapat" olduğundan
 tıklama da best-effort hale getirildi.
 
+**Assertion'lar aksiyonlardan farklı zaman aşımıyla koşuyordu.**
+Context 20 sn'lik aksiyon zaman aşımıyla kuruluyor, `expect` ise Playwright'ın
+5 sn'lik varsayılanını kullanıyordu. Sunucudan dönen bir geçişi doğrulayan adım
+(giriş sonrası açılan kayıt formu) sayfa hâlâ çalışırken aralıklı olarak
+düşüyordu. `utils/expect.js` ile ikisi aynı süreye bağlandı.
+
+**Sepetten silme tıklaması da kanıtsızdı.**
+Sepete ekleme ile aynı aile: çöp kutusu ikonuna Angular dinlemeye başlamadan
+tıklanınca onay penceresi hiç açılmıyordu. Ekleme akışındaki desen silme akışına
+da uygulandı.
+
 **Assertion'ların söylediği ile yaptığı farklıydı.**
 `adres satırının "..." ile başladığı` adımı aslında `contains` kontrolü yapıyordu
 (`/foo/login-error`, `/login` beklentisini geçirirdi). "Metin görünmüyor" kontrolü
@@ -103,11 +114,10 @@ adıyla çalışacak biçimde genişletilmesi daha sağlam olurdu.
 
 ## Yapılmayanlar
 
-- **API + storage state ile giriş (B1):** UI senaryolarını hızlandırabilirdi.
-  Sitenin giriş akışı iki adımlı olduğu ve token yönetimi incelenmediği için
-  kapsam dışında bırakıldı.
-- **CI pipeline (B2):** Zaman kısıtı nedeniyle eklenmedi. Proje headless
-  koşacak biçimde yapılandırıldığı için pipeline eklemek doğrudan mümkün.
 - **Docker imajının koşum doğrulaması:** `Dockerfile` yazıldı ve temel alınan
   Playwright imajının sürümü projeyle hizalandı (bu yüzden Playwright sürümü
   sabit), ancak imaj build edilip içinde tam senaryo seti koşturulmadı.
+- **API'nin daha geniş kullanımı:** Şu an yalnızca çıkış senaryosunun ön koşulu
+  API üzerinden hazırlanıyor. Sepet ön koşulları da API ile kurulabilirdi; UI
+  akışının kendisi test edildiği için sepet senaryolarında bilinçli olarak
+  yapılmadı.

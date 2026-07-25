@@ -93,7 +93,7 @@ docker run --rm --env-file .env -v "$PWD/allure-results:/app/allure-results" ebe
 | `features/search.feature` | Sonuç dönen ve karşılığı olmayan arama | `@search @smoke @regression` |
 | `features/cart.feature` | İki ürün ekleme, adet artırma, ürün silme, ara toplamın sayısal doğrulanması | `@cart @regression` |
 | `features/cart_persistence.feature` | Misafir sepetinin giriş sonrasında korunması | `@cart @auth @regression` |
-| `features/logout.feature` | Çıkış sonrası oturumun gerçekten sonlanması | `@auth @regression` |
+| `features/logout.feature` | Çıkış sonrası oturumun gerçekten sonlanması (oturum API üzerinden hazırlanır) | `@auth @regression` |
 
 ## Proje yapısı
 
@@ -177,7 +177,14 @@ beklemeyi adetten, sunucunun onayladığı özet değişimine taşımak
 (`pages/CartPage.js`). Ara toplam okumaları ayrıca beklenen değere ulaşana kadar
 yeniden okunuyor ve zaman aşımında son okunan değer hata mesajına yazılıyor.
 
-**4. Tıklamayı engelleyen overlay'ler.**
+**4. Assertion ve aksiyon zaman aşımlarının farklı olması.**
+Tarayıcı context'i 20 sn'lik aksiyon zaman aşımıyla kuruluyor, ancak Playwright'ın
+`expect` varsayılanı 5 sn. Sunucudan dönen bir geçişi (giriş sonrası açılan kayıt
+formu gibi) doğrulayan adımlar, sayfa hâlâ çalışırken aralıklı olarak düşüyordu.
+Çözüm: `utils/expect.js` içinde aksiyonlarla aynı süreyi kullanan ortak bir
+`expect` tanımlamak.
+
+**5. Tıklamayı engelleyen overlay'ler.**
 Çerez banner'ı sayfaya gecikmeli düşüyor, sepete ekleme sonrası sağdan açılan modal
 tıklamaları engelliyor (`ngb-modal-window intercepts pointer events`). Çözüm:
 `utils/waits.js` içindeki `dismissIfVisible` — element kısa sürede görünürse
@@ -207,6 +214,20 @@ etikette geçen bir sayının ("... (2 Ürün)") fiyat sanılması mümkündü.
 Kampanyalar ve fiyatlar canlı ortamda değiştiği için sabit tutar beklentisi yerine
 göreli (delta) doğrulama tercih edildi: hesaplama hatası yakalanır, fiyat değişimi
 testi kırmaz.
+
+## API ile oturum hazırlama
+
+Çıkış senaryosunda test edilen şey çıkışın kendisi; giriş yalnızca bir ön koşul.
+Bu yüzden iki adımlı giriş formu sürülmüyor: token doğrudan storefront'un OAuth
+uç noktasından alınıp (`utils/api-auth.js`) Spartacus'un oturumu sakladığı
+`localStorage` anahtarına yazılıyor, ardından sayfa yenileniyor.
+
+Enjeksiyon bilinçli olarak tek seferlik: `addInitScript` ile yapılsaydı token her
+navigasyonda geri yazılır ve çıkış sonrası misafir durumu hiç doğrulanamazdı.
+
+Kullanılan `client_id`/`client_secret` storefront'un herkese açık değerleri —
+her tarayıcı isteğinde görünüyorlar, kullanıcı sırrı değiller. Hesap bilgileri
+yine `.env` üzerinden geliyor. API adresi `API_URL` ile yapılandırılır.
 
 ## Test verisi
 
