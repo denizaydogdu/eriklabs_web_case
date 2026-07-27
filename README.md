@@ -85,6 +85,22 @@ docker run --rm --env-file .env -v "$PWD/allure-results:/app/allure-results" ebe
 İmaj, projedeki Playwright sürümüyle aynı resmi Playwright imajını temel alır
 (`mcr.microsoft.com/playwright:v1.61.1-noble`); tarayıcılar hazır gelir.
 
+### CI
+
+`.github/workflows/tests.yml`:
+
+- **Birim testler** her push ve pull request'te koşar (~15 sn, tarayıcı gerekmez).
+- **Uçtan uca testler** yalnızca elle tetiklenir (`workflow_dispatch`); Allure
+  raporu ve ham sonuçlar, koşum kırılsa bile artifact olarak yüklenir.
+  Giriş bilgileri `EBEBEK_PHONE` / `EBEBEK_PASSWORD` secret'larından okunur.
+
+Uçtan uca kısmın neden zamanlanmış olarak koşmadığı önemli bir nokta: **e-bebek'in
+önünde CloudFront var ve GitHub'ın paylaşımlı runner IP'lerini reddediyor.** Gecelik
+plan denendi, koşum `403 Request blocked` ile düştü — testler değil, siteye erişimin
+kendisi engellendi. Bunu doğrulamak kolay oldu, çünkü hata anında alınan ekran
+görüntüsü doğrudan CloudFront'un hata sayfasını gösteriyordu. Bu iş akışının uçtan
+uca kısmı, çıkış IP'si engellenmeyen bir self-hosted runner ile anlamlı çalışır.
+
 ## Senaryolar
 
 | Dosya | Kapsam | Etiketler |

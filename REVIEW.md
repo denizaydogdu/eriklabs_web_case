@@ -103,11 +103,18 @@ pencere geç açıldıysa ürün iki kez eklenmiş olur. Pencere için tanınan 
 (8 sn) gözlenen açılma süresinin (1-3 sn) belirgin üzerinde tutularak risk
 küçültüldü; kesin çözüm, sepet içeriğini API üzerinden doğrulamak olurdu.
 
-**4. Trace her senaryoda toplanıyor.**
+**4. Uçtan uca testler paylaşımlı CI runner'ında koşamıyor.**
+e-bebek'in önündeki CloudFront, GitHub'ın paylaşımlı runner IP'lerinden gelen
+istekleri `403 Request blocked` ile reddediyor; gecelik plan bu yüzden kaldırıldı
+ve uçtan uca job'ı elle tetiklenir hale getirildi. Testlerde bir sorun yok, siteye
+hiç ulaşılamıyor — koşum artefaktlarındaki ekran görüntüsü doğrudan CloudFront'un
+hata sayfasını gösteriyor. Doğru çözüm self-hosted runner; kapsam dışı bırakıldı.
+
+**5. Trace her senaryoda toplanıyor.**
 Başarılı senaryolarda dosya siliniyor, ancak toplama maliyeti koşum süresine
 yansıyor. Alternatif olarak yalnızca tekrar denemede trace toplanabilirdi.
 
-**5. Sepet satırı seçimi indekse dayalı.**
+**6. Sepet satırı seçimi indekse dayalı.**
 `1. ürünün adedi bir artırılır` gibi adımlar satır sırasını kullanıyor. Sepet
 sıralaması değişirse yanlış satır üzerinde işlem yapılabilir. Adımların ürün
 adıyla çalışacak biçimde genişletilmesi daha sağlam olurdu.

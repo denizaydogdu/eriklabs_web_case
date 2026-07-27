@@ -1,14 +1,17 @@
 name: Tests
 
 # Birim testler her push'ta kosar; tarayici gerektirmezler ve saniyeler surer.
-# Uctan uca testler canli siteye baglidir ve giris denemeleri site tarafinda
-# sayildigi icin her commit'te degil, elle veya gecelik tetiklenir.
+#
+# Uctan uca testler yalnizca elle tetikleniyor. Gecelik plan denendi ve
+# kaldirildi: e-bebek onunde CloudFront var ve GitHub'in paylasimli runner
+# IP'lerinden gelen istekleri 403 "Request blocked" ile reddediyor. Yani sorun
+# testlerde degil, siteye hic ulasilamamasinda -- kosum artefaktlarindaki ekran
+# goruntusu dogrudan CloudFront hata sayfasini gosteriyor. Bu is akisinin uctan
+# uca kismi, cikis IP'si engellenmeyen bir self-hosted runner gerektiriyor.
 on:
   push:
     branches: [main]
   pull_request:
-  schedule:
-    - cron: '0 3 * * *'
   workflow_dispatch:
     inputs:
       tags:
@@ -33,7 +36,7 @@ jobs:
     name: Uçtan uca testler
     runs-on: ubuntu-latest
     # Push ve pull_request tetiklemelerinde atlanir: canli siteye karsi kosuyor.
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch'
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
@@ -50,6 +53,18 @@ jobs:
           java-version: 17
 
       - run: npm ci
+
+      # Eksik secret'i 20 dakikalik bir kosumun ortasinda degil, hemen soyle.
+      - name: Giris bilgileri tanimli mi
+        env:
+          EBEBEK_PHONE: ${{ secrets.EBEBEK_PHONE }}
+          EBEBEK_PASSWORD: ${{ secrets.EBEBEK_PASSWORD }}
+        run: |
+          if [ -z "$EBEBEK_PHONE" ] || [ -z "$EBEBEK_PASSWORD" ]; then
+            echo "EBEBEK_PHONE ve EBEBEK_PASSWORD secret'lari tanimli degil."
+            echo "Repo > Settings > Secrets and variables > Actions altindan ekleyin."
+            exit 1
+          fi
 
       - name: Tarayiciyi kur
         run: npx playwright install --with-deps chromium
